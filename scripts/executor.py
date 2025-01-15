@@ -76,16 +76,16 @@ class Executor:
 
         # ** Merging the result from 1. news trend report & 2. Key data from pdf reports
         j = 0
-        for trend_name, trend_report in st.session_state["trends_merged"].items():
-            progress_bar.progress(0.8 + 0.2 * (j / len(st.session_state['trends_merged'].keys())), f"Merging trend {j+1}")
+        for trend_name, trend_report in st.session_state["trends_confirmed"].items():
+            progress_bar.progress(0.8 + 0.2 * (j / len(st.session_state['trends_confirmed'].keys())), f"Merging trend {j+1}")
             Generator.merge(theme, trend_report, j + 1)
-            progress_bar.progress(0.8 + 0.2 * ( (j+1) / len(st.session_state['trends_merged'].keys())), f"Merging trend {j+2}")
+            progress_bar.progress(0.8 + 0.2 * ( (j+1) / len(st.session_state['trends_confirmed'].keys())), f"Merging trend {j+2}")
             j += 1
 
         progress_bar.progress(1, "Complete!")
 
         final = {}
-        for i, (trend_title, trend_content) in enumerate(st.session_state["trends_merged"].items(), start = 1):
+        for i, (trend_title, trend_content) in enumerate(st.session_state["trends_confirmed"].items(), start = 1):
             final[f"主要趨勢{i}"] = trend_content
         with open(f"output/{theme}_trend_report.json", "w", encoding = "utf8") as f:
             json.dump(st.session_state["merged_report"], f, ensure_ascii = False)

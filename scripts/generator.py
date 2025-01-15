@@ -64,7 +64,7 @@ class Generator:
         if filename in st.session_state['pdf_results'].keys():
             pass
         else:
-            trends = "\n\n".join([f'{name}: {report}'.replace("{", "(").replace("}", ")") for name, report in st.session_state["trends_merged"].items()])
+            trends = "\n\n".join([f'{name}: {report}'.replace("{", "(").replace("}", ")") for name, report in st.session_state["trends_confirmed"].items()])
             # st.write(trends)
             chain = LlmManager.create_prompt_chain(PromptManager.Pdf.basic_gen(theme, trends))
 

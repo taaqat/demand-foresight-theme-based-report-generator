@@ -88,7 +88,7 @@ def FUNC_left():
         st.info('請上傳"csv" 或 "xlsx" 格式，並且具有明確表頭的資料')
 
     if st.button("Rename"):
-        if raw == None:
+        if pd.DataFrame(raw).empty:
             st.warning("請上傳新聞資料")
         else:
             raw_processed = raw.rename(
@@ -195,13 +195,20 @@ def main():
             FUNC_call_executor_1()
 
             # todo *** Add a block that asks users to check the output so far.
-            with st.expander("check the output so far"):
-                st.write(st.session_state["trends_merged"])
+            edited_text = st.text_area("請確認目前為止的趨勢報告，並且依照喜好進行編輯。", 
+                         json.dumps(st.session_state["trends_merged"], indent = 4, ensure_ascii = False),
+                         height = 200)
+            # ** test whether user breaks the JSON formatting of the string
+            try:
+                st.session_state['trends_confirmed'] = json.loads(edited_text)
+                 # Wait for user confirmation
+                if st.button("Press to proceed", type = "primary"):
+                    st.session_state['stage'] = "proceeding"
+                    st.rerun()
+            except:
+                st.warning("請不要破壞 JSON 結構！")
 
-            # Wait for user confirmation
-            if st.button("Press to proceed", type = "primary"):
-                st.session_state['stage'] = "proceeding"
-                st.rerun()
+           
 
     # * 第三步（第二個頁面）：AI 推論分析（後半）
     elif (st.session_state['stage'] == "proceeding"):
