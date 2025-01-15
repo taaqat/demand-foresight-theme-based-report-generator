@@ -12,11 +12,19 @@ import streamlit as st
 import pandas as pd
 import json
 import os
+from yaml.loader import SafeLoader
+import streamlit_authenticator as stauth
+from streamlit_authenticator import Hasher
+import yaml
 
 
-# **** Config
+# *********** Config ***********
 st.set_page_config(page_title='III Trend Report Generator', page_icon=":tada:", layout="wide")
 st.title("主題式趨勢報告")
+
+if "config" not in st.session_state:
+    with open("users.yaml") as file:
+        st.session_state.config = yaml.load(file, Loader=SafeLoader)
 
 # 初始化新聞原始資料的容器
 if 'news_raw' not in st.session_state:
@@ -135,6 +143,7 @@ def FUNC_call_executor_2():
 
  
 def main():
+    st.session_state['logged_in'] = True
     # * 第一部（第一個頁面）：資料上傳與資料處理
     if st.session_state['stage'] == "manual_data_processing":
         with BOX_data_process.container():
@@ -208,6 +217,68 @@ def main():
                 unsafe_allow_html = True
                 )
 
-main()
+# ------------------------------------------------------------------------------------------------------
+# *** Authentication & Call the main function ***
+            
+if st.secrets['permission']['authenticate'] == True:
+
+    authenticator = stauth.Authenticate(
+        st.session_state.config['credentials'],
+        st.session_state.config['cookie']['name'],
+        st.session_state.config['cookie']['key'],
+        st.session_state.config['cookie']['expiry_days'],
+    )
+    try:
+        l, m, r = st.columns((1/4, 1/2, 1/4))
+        with m:
+            placeholder = st.container()
+        with placeholder:
+            authenticator.login('main')
+    except Exception as e:
+        st.error(e)
+
+    if st.session_state.authentication_status:
+        st.session_state.authenticator = authenticator
+        
+        with st.sidebar:
+            icon_box, text_box = st.columns((0.2, 0.8))
+            with icon_box:
+                st.markdown(f'''
+                                <img class="image" src="data:image/jpeg;base64,{DataManager.image_to_b64(f"./iii_icon.png")}" alt="III Icon" style="width:500px;">
+                            ''', unsafe_allow_html = True)
+            with text_box:
+                st.markdown("""
+                <style>
+                    .powered-by {text-align:right;
+                                font-size: 14px;
+                                color: grey;}
+                </style>
+                <p class = powered-by> Powered by 資策會數轉院 <br/>跨域實證服務中心 創新孵化組</p>""", unsafe_allow_html = True)
+            st.header("資策會 Demand Foresight Tools")
+            st.page_link('page_main.py', label = '主題式趨勢報告產生器', icon = ':material/add_circle:')
+            authenticator.logout()
+        main()
+    elif st.session_state.authentication_status is False:
+        st.error('使用者名稱/密碼不正確')
+
+else:
+    with st.sidebar:
+        icon_box, text_box = st.columns((0.2, 0.8))
+        with icon_box:
+            st.markdown(f'''
+                            <img class="image" src="data:image/jpeg;base64,{DataManager.image_to_b64(f"./iii_icon.png")}" alt="III Icon" style="width:500px;">
+                        ''', unsafe_allow_html = True)
+        with text_box:
+            st.markdown("""
+            <style>
+                .powered-by {text-align:right;
+                            font-size: 14px;
+                            color: grey;}
+            </style>
+            <p class = powered-by> Powered by 資策會數轉院 <br/>跨域實證服務中心 創新孵化組</p>""", unsafe_allow_html = True)
+        st.header("資策會 Demand Foresight Tools")
+        st.page_link('page_main.py', label = '主題式趨勢報告產生器', icon = ':material/add_circle:')
+            
+    main()
 
 
