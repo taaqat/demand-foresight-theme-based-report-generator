@@ -1,0 +1,13 @@
+pandas
+python-dotenv
+langchain-anthropic
+langchain-core
+langchain
+requests
+tqdm
+openpyxl
+numpy
+python-pptx  # Correct package name for pptx
+st-gsheets-connection
+streamlit-authenticator
+PyYAML
