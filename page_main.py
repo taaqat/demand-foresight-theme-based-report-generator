@@ -205,7 +205,7 @@ def main():
                 if st.button("Press to proceed", type = "primary"):
                     st.session_state['stage'] = "proceeding"
                     st.rerun()
-            except:
+            except json.decoder.JSONDecodeError:
                 st.warning("請不要破壞 JSON 結構！")
 
            
