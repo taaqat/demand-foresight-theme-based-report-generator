@@ -61,16 +61,17 @@ with LEFT_COL:
 with RIGHT_COL:
     BOX_pdf_upload = st.empty()
     BOX_show_result = st.empty()
+    
 
 # **********************************************************************************************************************************
 # ************************************** Data Upload **********************************************
 # *** News data upload
 
 # *** FUNC 開頭的變數，為執行特定功能的函數，會被包在 BOX 當中
-def FUNC_data_process():
-    uploaded = st.file_uploader("Upload a file")
+def FUNC_left():
+    uploaded = st.file_uploader("上傳新聞資料")
     raw = DataManager.load_news(uploaded)                 # *** 之後改成 user upload
-    with st.expander("Preview the data you uploaded"):
+    with st.expander("預覽你上傳的資料"):
         st.dataframe(raw)
 
     
@@ -84,41 +85,50 @@ def FUNC_data_process():
         with rename_r:
             content_col = st.selectbox("Summary", raw.columns)
     except:
-        st.info('Please upload news data in "csv" or "xlsx" format')
+        st.info('請上傳"csv" 或 "xlsx" 格式，並且具有明確表頭的資料')
 
     if st.button("Rename"):
-        raw_processed = raw.rename(
-            columns = {
-                id_col: "id",
-                title_col: "title",
-                content_col: "summary"
-            }
-        )
-        raw_processed = raw_processed[['id', 'title', 'summary']]
-        st.session_state["news_raw"] = raw_processed
+        if raw == None:
+            st.warning("請上傳新聞資料")
+        else:
+            raw_processed = raw.rename(
+                columns = {
+                    id_col: "id",
+                    title_col: "title",
+                    content_col: "summary"
+                }
+            )
+            raw_processed = raw_processed[['id', 'title', 'summary']]
+            st.session_state["news_raw"] = raw_processed
 
 
     
 
     
     if [col in st.session_state["news_raw"].columns for col in ["id", "title", "summary"]] == [True, True, True]:
-        with st.expander("Processed data preview"):
+        with st.expander("預覽重新命名後的資料"):
             st.dataframe(st.session_state['news_raw'])
 
         
         
 
-def FUNC_pdf_upload():
-    pdf_uploaded = st.file_uploader("Upload a research report in pdf format (optional)", type = "pdf", accept_multiple_files = True)    
+def FUNC_right():
+    pdf_uploaded = st.file_uploader("上傳 PDF 格式研究報告（支援複數檔案）", type = "pdf", accept_multiple_files = True)    
 
     if pdf_uploaded is not None:
         for file in pdf_uploaded:
             pdf_in_messages = DataManager.load_pdf(file)
             st.session_state["pdfs_raw"][file.name] = pdf_in_messages
 
-    st.session_state["theme"] = st.text_input("Please type in the 'theme' name")
-    st.session_state["n_split"] = st.selectbox("Please select the number of splits based on the length of your input",
-                                               [2, 3, 4, 5, 6, 7, 8, 9, 10, 20])
+    # ** 主題名稱
+    st.subheader("請輸入主題名稱（Mandatory）")
+    st.session_state["theme"] = st.text_input("請輸入**主題名稱**")
+    
+    # ** 拆分次數
+    st.subheader("請選擇拆分次數")
+    st.session_state["n_split"] = st.slider("依據你輸入的新聞資料多寡，決定要將資料拆成幾批來處理。",
+                                               2, 20, step = 1)
+    
 
 def FUNC_call_executor_1():
     if st.button("Undo"):
@@ -148,19 +158,22 @@ def main():
     if st.session_state['stage'] == "manual_data_processing":
         with BOX_data_process.container():
             st.subheader("請上傳新聞摘要資料")
-            FUNC_data_process()
+            FUNC_left()
 
         with BOX_pdf_upload.container():
             st.subheader("請上傳研究報告（Optional）")
-            FUNC_pdf_upload()
+            FUNC_right()
 
         c_proceed, c_undo = st.columns(2)
 
         # * 若確定繼續，則 stage 跳到 generating。結合後面的 if else statement，畫面跳轉至第二步驟的頁面
         with c_proceed:
             if st.button("Submit", type = "primary"):
-                st.session_state['stage'] = "generating"
-                st.rerun()
+                if st.session_state["news_raw"].empty:
+                    st.warning("請上傳新聞資料")
+                else:
+                    st.session_state['stage'] = "generating"
+                    st.rerun()
 
         # * 若想重新選擇欄位或上傳 pdf，點選 Undo。此舉動會清除所有 session state 變數，請注意。
         with c_undo:
