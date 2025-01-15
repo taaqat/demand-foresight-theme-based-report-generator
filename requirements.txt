@@ -12,4 +12,3 @@ st-gsheets-connection
 streamlit-authenticator
 PyYAML
 pypdf
-base64
