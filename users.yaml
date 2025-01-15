@@ -1,0 +1,20 @@
+credentials:
+  usernames:
+    jsmith:
+      email: jsmith@gmail.com
+      name: John Smith
+      password: $2b$12$dA.U/nB8v2REqzrqn2O9RO2dCnOMSJaKJXmdO6TE9zSV4zCHdzWYS
+      
+    rbriggs:
+      email: rbriggs@gmail.com
+      name: Rebecca Briggs
+      password: $2b$12$inSYwVQNdwtirlQKQYV4SeWFiD7C34zsoD8mCr8s1FTIdbTppTPCG
+
+    iii-org:
+      email: user@iii.org.tw
+      name: Institute of Information Industry
+      password: $2b$12$inSYwVQNdwtirlQKQYV4SeWFiD7C34zsoD8mCr8s1FTIdbTppTPCG
+cookie:
+  expiry_days: 90
+  key: random_signature_key # Must be string
+  name: random_cookie_name
