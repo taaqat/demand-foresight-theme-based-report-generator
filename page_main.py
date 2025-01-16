@@ -90,65 +90,95 @@ BOX_S1_BUTTON = st.empty()
 
 # *** FUNC 開頭的變數，為執行特定功能的函數，會被包在 BOX 當中
 def FUNC_left():
-    uploaded = st.file_uploader("上傳新聞資料")
-    raw = DataManager.load_news(uploaded)                 # *** 之後改成 user upload
-    with st.expander("預覽你上傳的資料"):
-        st.dataframe(raw)
 
-    
-    # *** Data Column Rename
-    try:
-        rename_l, rename_m, rename_r= st.columns(3)
-        with rename_l:
-            id_col = st.selectbox("ID", raw.columns)
-        with rename_m:
-            title_col = st.selectbox("Title", raw.columns)
-        with rename_r:
-            content_col = st.selectbox("Summary", raw.columns)
-    except:
-        st.info('請上傳"csv" 或 "xlsx" 格式，並且具有明確表頭的資料')
+    # * 新聞資料上傳的表單
+    @st.dialog("上傳新聞資料")
+    def FORM_news_data_upload():
+        uploaded = st.file_uploader("上傳新聞資料", key = 'news')
+        raw = DataManager.load_news(uploaded)                 
+        with st.expander("預覽你上傳的資料"):
+            st.dataframe(raw)
 
-    if st.button("Rename"):
-        if pd.DataFrame(raw).empty:
-            st.warning("請上傳新聞資料")
-        else:
-            raw_processed = raw.rename(
-                columns = {
-                    id_col: "id",
-                    title_col: "title",
-                    content_col: "summary"
-                }
-            )
-            raw_processed = raw_processed[['id', 'title', 'summary']]
-            st.session_state["news_raw"] = raw_processed
+        # *** Data Column Rename
+        try:
+            rename_l, rename_m, rename_r= st.columns(3)
+            with rename_l:
+                id_col = st.selectbox("ID", raw.columns)
+            with rename_m:
+                title_col = st.selectbox("Title", raw.columns)
+            with rename_r:
+                content_col = st.selectbox("Summary", raw.columns)
+        except:
+            st.info('請上傳"csv" 或 "xlsx" 格式，並且具有明確表頭的資料')
 
+        if st.button("重新命名欄位"):
 
-    
+            if pd.DataFrame(raw).empty:
+                st.warning("請上傳新聞資料")
+            else:
+                raw_processed = raw.rename(
+                    columns = {
+                        id_col: "id",
+                        title_col: "title",
+                        content_col: "summary"
+                    }
+                )
+                raw_processed = raw_processed[['id', 'title', 'summary']]
+                st.session_state["news_raw"] = raw_processed
 
-    
-    if [col in st.session_state["news_raw"].columns for col in ["id", "title", "summary"]] == [True, True, True]:
-        with st.expander("預覽重新命名後的資料"):
-            st.dataframe(st.session_state['news_raw'])
+                if [col in st.session_state["news_raw"].columns for col in ["id", "title", "summary"]] == [True, True, True]:
+                    with st.expander("預覽重新命名後的資料"):
+                        st.dataframe(st.session_state['news_raw'])
+                
+        if st.button("確認"):
+            st.rerun()
+
+    # * pdf 上傳的表單
+    @st.dialog("上傳研究報告資料")
+    def FORM_pdfs_data_upload():
+        pdf_uploaded = st.file_uploader("上傳 PDF 格式研究報告（支援複數檔案）", type = "pdf", accept_multiple_files = True, key = 'pdfs')    
+
+        if st.button("確認"):
+            if pdf_uploaded is not None:
+                for file in pdf_uploaded:
+                    if file.name not in st.session_state["pdfs_raw"].keys():
+                        pdf_in_messages = DataManager.load_pdf(file)
+                        st.session_state["pdfs_raw"][file.name] = pdf_in_messages
+            st.rerun()
+
+    if st.button("點此上傳新聞摘要資料"):
+        FORM_news_data_upload()
+
+    if st.button("點此上傳研究報告資料"):
+        FORM_pdfs_data_upload()
+
+    ll, lr = st.columns(2)
+    with ll:
+        # ** 主題名稱
+        st.session_state["theme"] = st.text_input("請輸入**主題名稱**")
+    with lr:
+        # ** 拆分次數
+        st.session_state["n_split"] = st.slider("請設定**批次數量**", 2, 10, step = 1)
 
         
-        
+    
 
 def FUNC_right():
-    pdf_uploaded = st.file_uploader("上傳 PDF 格式研究報告（支援複數檔案）", type = "pdf", accept_multiple_files = True)    
-
-    if pdf_uploaded is not None:
-        for file in pdf_uploaded:
-            pdf_in_messages = DataManager.load_pdf(file)
-            st.session_state["pdfs_raw"][file.name] = pdf_in_messages
-
-    # ** 主題名稱
-    st.subheader("請輸入主題名稱（Mandatory）")
-    st.session_state["theme"] = st.text_input("請輸入**主題名稱**")
     
-    # ** 拆分次數
-    st.subheader("請選擇拆分次數")
-    st.session_state["n_split"] = st.slider("依據你輸入的新聞資料多寡，決定要將資料拆成幾批來處理。",
-                                               2, 20, step = 1)
+    TAB_news, TAB_pdfs = st.tabs(["新聞摘要資料預覽", "研究報告資料預覽"])
+    with TAB_news:
+        with st.container(height = 250, border = False):
+            st.dataframe(st.session_state["news_raw"])
+    with TAB_pdfs:
+        with st.container(height = 250, border = False):
+            for key, value in st.session_state["pdfs_raw"].items():
+                st.caption(f"**:blue[{key}]**")
+                st.json(value, expanded = False)
+
+   
+    
+    
+    
     
 
 def FUNC_call_executor_1():
@@ -183,11 +213,10 @@ def UI():
     # * 第一步（第一個頁面）：資料上傳與資料處理
     if st.session_state['stage'] == "manual_data_processing":
         with BOX_data_process.container():
-            st.subheader("請上傳新聞摘要資料")
+            st.markdown("<h4>資料上傳與參數設定</h4>", unsafe_allow_html = True)
             FUNC_left()
 
         with BOX_pdf_upload.container():
-            st.subheader("請上傳研究報告（Optional）")
             FUNC_right()
 
         with BOX_S1_BUTTON.container():
@@ -211,7 +240,8 @@ def UI():
             if st.button("Undo", type = "secondary"):
                 st.session_state["news_raw"] = pd.DataFrame()
                 for key in st.session_state.keys():
-                    del st.session_state[key]
+                    if key not in ["user_recorded", "user", "email"]:
+                        del st.session_state[key]
                 st.rerun()
 
     # * 第二步（第二個頁面）：AI 推論分析（前半）
