@@ -310,29 +310,32 @@ def main():
             st.page_link('page_main.py', label = '主題式趨勢報告產生器', icon = ':material/add_circle:')
             st.page_link('pages/page_archive.py', label = 'ARCHIVE', icon = ':material/add_circle:')
 
-        # * Entry Point: 登入後讓使用者輸入基本資料
-        if 'user_recorded' in st.session_state:
-            try:
-                st.code(f"歡迎使用資策會簡報產生器, {st.session_state['user']}")
-            except:
-                pass
+    # * Entry Point: 登入後讓使用者輸入基本資料
+    if 'user_recorded' in st.session_state:
+        try:
+            with st.sidebar:
+                st.info(f"Dear **{st.session_state['user']}**, 歡迎使用資策會簡報產生器")
+        except:
+            pass
+        with st.sidebar:
             if st.button("重設用戶資料"):
                 del st.session_state['user_recorded']
                 st.rerun()
-            
+        
 
-        if "user_recorded" not in st.session_state:
-            try:
-                user_info()
-            except:
-                pass
-
+    if "user_recorded" not in st.session_state:
+    
+        try:
+            user_info()
+        except:
+            pass
+        with st.sidebar:
             if st.button("設定用戶資料", type = "primary"):
                 try:
                     user_info()
                 except:
                     pass
-            st.stop()
+        st.stop()
 
         
 

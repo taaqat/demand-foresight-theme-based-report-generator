@@ -51,7 +51,7 @@ with st.sidebar:
     # * Entry Point: 登入後讓使用者輸入基本資料
     if 'user_recorded' in st.session_state:
         try:
-            st.code(f"歡迎使用資策會簡報產生器, {st.session_state['user']}")
+            st.info(f"Dear **{st.session_state['user']}**, 歡迎使用資策會簡報產生器")
         except:
             pass
         if st.button("重設用戶資料"):
