@@ -362,7 +362,8 @@ if st.secrets['permission']['authenticate'] == True:
 
             authenticator.logout()
 
-        main()
+        if "user_recorded" in st.session_state:
+            main()
 
             
         
@@ -409,6 +410,7 @@ else:
                     user_info()
                 except:
                     pass
-    main()
+    if "user_recorded" in st.session_state:
+        main()
 
 
