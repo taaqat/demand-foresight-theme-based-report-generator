@@ -185,7 +185,7 @@ class DataManager:
     @staticmethod
     def send_notification_email(receiver_nickname, receiver_email, type, page, error = None):
 
-        assert type in ['completed', 'failed'], "parameter 'type' should be one of ['completed', 'failed']"
+        assert type in ['completed', 'failed', 'halfway'], "parameter 'type' should be one of ['completed', 'failed', 'halfway']"
         assert page in ['summary', 'trend_report'], "parameter 'page' should be one of ['summary', 'trend_report']"
 
         sender_email = "taaqat93@gmail.com"
