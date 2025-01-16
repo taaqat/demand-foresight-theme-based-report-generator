@@ -267,7 +267,7 @@ def UI():
             if st.button("Undo", type = "secondary"):
                 st.session_state["news_raw"] = pd.DataFrame()
                 for key in st.session_state.keys():
-                    if key not in ["user_recorded", "user", "email"]:
+                    if key not in ["user_recorded", "user", "email", "logged_in"]:
                         del st.session_state[key]
                 st.rerun()
 
