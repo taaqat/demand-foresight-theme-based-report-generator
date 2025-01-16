@@ -2,7 +2,11 @@ import streamlit as st
 import streamlit_authenticator as stauth
 from managers.data_manager import DataManager
 
-
+# * --- Config
+if ("set_page_config" not in st.session_state):
+    st.session_state['set_page_config'] = True
+    st.set_page_config(page_title='III Trend Report Generator', page_icon=":tada:", layout="wide")
+    
 @st.dialog("輸入基本資料：")
 def user_info():
     user = st.text_input("你的暱稱")
@@ -19,6 +23,8 @@ def user_info():
             st.session_state["user_recorded"] = True
             st.rerun()
 
+st.title("ARCHIVE")
+
 st.markdown("""<style>
     div.stButton > button {
         width: 100%;  /* 設置按鈕寬度為頁面寬度的 50% */
@@ -28,6 +34,8 @@ st.markdown("""<style>
     }
     </style>
     """, unsafe_allow_html=True)
+
+
 # ------------------------------------------------------------------------------------------------------
 with st.sidebar:
     icon_box, text_box = st.columns((0.2, 0.8))
@@ -46,6 +54,7 @@ with st.sidebar:
     st.header("資策會 Demand Foresight Tools")
     with st.sidebar:
         st.page_link('page_main.py', label = '主題式趨勢報告產生器', icon = ':material/add_circle:')
+        st.page_link('pages/page_summarize.py', label = '新聞摘要產生器', icon = ':material/add_circle:')
         st.page_link('pages/page_archive.py', label = 'ARCHIVE', icon = ':material/add_circle:')
 
     # * Entry Point: 登入後讓使用者輸入基本資料
