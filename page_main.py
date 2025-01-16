@@ -108,10 +108,11 @@ def FUNC_left():
                 title_col = st.selectbox("Title", raw.columns)
             with rename_r:
                 content_col = st.selectbox("Summary", raw.columns)
+            st.caption(":blue[選擇要作為 id, title, summary 的欄位後，點選**確認**]")
         except:
             st.info('請上傳"csv" 或 "xlsx" 格式，並且具有明確表頭的資料')
 
-        if st.button("重新命名欄位"):
+        if st.button("確認"):
 
             if pd.DataFrame(raw).empty:
                 st.warning("請上傳新聞資料")
@@ -126,12 +127,9 @@ def FUNC_left():
                 raw_processed = raw_processed[['id', 'title', 'summary']]
                 st.session_state["news_raw"] = raw_processed
 
-                if [col in st.session_state["news_raw"].columns for col in ["id", "title", "summary"]] == [True, True, True]:
-                    with st.expander("預覽重新命名後的資料"):
-                        st.dataframe(st.session_state['news_raw'])
-                
-        if st.button("確認"):
             st.rerun()
+                
+    
 
     # * pdf 上傳的表單
     @st.dialog("上傳研究報告資料")
@@ -146,17 +144,50 @@ def FUNC_left():
                         st.session_state["pdfs_raw"][file.name] = pdf_in_messages
             st.rerun()
 
-    if st.button("點此上傳新聞摘要資料"):
-        FORM_news_data_upload()
+    # * 新聞上傳的說明
+    @st.dialog("關於新聞摘要資料")
+    def FORM_news_explanation():
+        st.write("""
+- 由於大型語言模型有 input token 的限制，為了降低負荷量，我們要求新聞資料的內容要以「摘要」為主，請勿直接上傳新聞原文資料。
+- 輸入的新聞摘要資料必須要有三個欄位：
+                 
+    - **id**:       用來唯一識別新聞文章
+    - **title**:    新聞標題
+    - **summary**:  新聞摘要
+    
+    欄位名稱不合也沒關係，此工具提供重新命名欄位功能。
+- 若您手邊只有新聞原文資料，請使用**新聞摘要產生器**工具來製作（參考左側選單）。
+- 若您的新聞筆數很大，請調整**批次數量**參數，讓語言模型分批處理。""")
 
-    if st.button("點此上傳研究報告資料"):
-        FORM_pdfs_data_upload()
+    # * pdf 上傳的說明
+    @st.dialog("研究報告資料是什麼？")
+    def FORM_pdfs_explanation():
+        st.write("""
+- 您可以選擇是否上傳與主題相關的研究報告資料。大型語言模型將會從這些資料中歸納出能夠**支持新聞中趨勢的關鍵數據點。**
+- 研究報告資料請上傳 **pdf** 格式。
+- 請自行審核欲上傳的檔案品質，若內容不多（例如：都是圖片）或是太長、太短，則請先處理後再上傳，以免語言模型出錯。""")
 
-    ll, lr = st.columns(2)
-    with ll:
+    ll_1, lr_1 = st.columns((0.9, 0.1))
+    ll_2, lr_2 = st.columns((0.9, 0.1))
+
+    with ll_1:
+        if st.button("點此上傳新聞摘要資料"):
+            FORM_news_data_upload()
+    with lr_1:
+        if st.button("?", 'news_upload_explanation'):
+            FORM_news_explanation()
+    with ll_2:
+        if st.button("點此上傳研究報告資料"):
+            FORM_pdfs_data_upload()
+    with lr_2:
+        if st.button("?", 'pdfs_upload_explanation'):
+            FORM_pdfs_explanation()
+
+    ll_3, lr_3 = st.columns(2)
+    with ll_3:
         # ** 主題名稱
         st.session_state["theme"] = st.text_input("請輸入**主題名稱**")
-    with lr:
+    with lr_3:
         # ** 拆分次數
         st.session_state["n_split"] = st.slider("請設定**批次數量**", 2, 10, step = 1)
 
@@ -175,11 +206,7 @@ def FUNC_right():
                 st.caption(f"**:blue[{key}]**")
                 st.json(value, expanded = False)
 
-   
-    
-    
-    
-    
+
 
 def FUNC_call_executor_1():
     cl, cr = st.columns(2)
