@@ -19,6 +19,10 @@ import re
 import sys
 from streamlit_gsheets import GSheetsConnection
 from pypdf import PdfReader
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 
 class DataManager:
     
@@ -176,3 +180,65 @@ class DataManager:
             st.warning(response.content)
 
         return response
+    
+    # *** This function sends Notification Email to User's Address ***
+    @staticmethod
+    def send_notification_email(receiver_nickname, receiver_email, type, page, error = None):
+
+        assert type in ['completed', 'failed'], "parameter 'type' should be one of ['completed', 'failed']"
+        assert page in ['summary', 'trend_report'], "parameter 'page' should be one of ['summary', 'trend_report']"
+
+        sender_email = "taaqat93@gmail.com"
+        
+        type_mapping = {"completed": {
+                            "summary": """您的新聞摘要已生成，請回到網頁下載！
+                                <br /><br />Sincerely,<br /><strong>III Trend Report Generator</strong>""",
+                            "trend_report":  """您的趨勢報告已生成，請回到網頁下載！
+                                <br /><br />Sincerely,<br /><strong>III Trend Report Generator</strong>"""
+                        },
+                        "failed": {
+                            "summary": f"""您的新聞摘要生成失敗！！<br />{error}<br />
+                                <br /><br />Sincerely,<br /><strong>III Trend Report Generator</strong>""",
+                            "trend_report":  """您的趨勢報告生成失敗！！
+                                <br /><br />Sincerely,<br /><strong>III Trend Report Generator</strong>"""},
+                        "halfway": {
+                            "trend_report":  """您的趨勢報告已經製作到一半囉！請回網頁確認目前為止的內容，並且點擊「繼續」！
+                                <br /><br />Sincerely,<br /><strong>III Trend Report Generator</strong>"""}}
+
+        # * email_content *
+        mail_content = f"""
+        <!doctype html>
+        <html>
+        <head>
+        <meta charset='utf-8'>
+        <title>HTML mail</title>
+        </head>
+        <body>
+            <p style="font-size:18px; "> 
+            Dear {receiver_nickname}: <br /><br />
+            {type_mapping[type][page]}</p>
+        </body>
+        </html>
+        """
+
+        # * Create email object *
+        msg = MIMEMultipart()
+        msg['From'] = "III demand-foresight trend report generator"
+        msg['To'] = receiver_email
+        msg['Subject'] = f"[III] Trend Reports {type.capitalize()}!"
+        msg.attach(MIMEText(mail_content, 'html'))
+
+        # SMTP Config
+        smtp_server = "smtp.gmail.com"
+        port = 587
+        password = st.secrets['GMAIL_SENDER']  
+
+        try:
+            # 建立與伺服器的安全連線並發送電子郵件
+            with smtplib.SMTP(smtp_server, port) as server:
+                server.starttls()  # 開啟安全連接
+                server.login(sender_email, password)
+                server.sendmail(sender_email, receiver_email, msg.as_string())
+                # print("Notification mail sent to your email address!")
+        except Exception:
+            st.warning(f"Failed to send the email: {Exception}")

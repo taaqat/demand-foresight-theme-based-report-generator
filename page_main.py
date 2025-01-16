@@ -282,9 +282,16 @@ def UI():
 
         with BOX_call_executor_1.container():
             st.subheader("執行進度與操作")
-            FUNC_call_executor_1()
+            try:
+                FUNC_call_executor_1()
+                DataManager.send_notification_email(st.session_state['user'], 
+                                                    st.session_state['email'],
+                                                    type = 'halfway', page = 'trend_report')
+            except Exception as error:
+                DataManager.send_notification_email(st.session_state['user'], 
+                                                    st.session_state['email'],
+                                                    type = 'failed', page = 'trend_report', error = error)
 
-            # todo *** Add a block that asks users to check the output so far.
             edited_text = st.text_area("請**確認**到目前為止生成的趨勢報告，並且依照喜好進行**編輯**。", 
                          json.dumps(st.session_state["trends_merged"], indent = 4, ensure_ascii = False),
                          height = 200)
@@ -309,43 +316,57 @@ def UI():
         BOX_call_executor_1.empty()
         with BOX_call_executor_2.container():
             st.subheader("執行進度與操作")
-            FUNC_call_executor_2()
         
-        with BOX_show_result.container():
-            st.subheader("成果連結")
-            st.write("""\n\n\n\n\n""")
-            with open(f"./output/{st.session_state["theme"]}_trend_report.json") as f:
-                data = json.load(f)
+        try:
+            with BOX_show_result.container():
+                st.subheader("成果連結")
+                st.write("""\n\n\n\n\n""")
+                with open(f"./output/{st.session_state["theme"]}_trend_report.json") as f:
+                    data = json.load(f)
 
-            # print(data)
-            # print(type(data))
-            st.success("Your trend report has been created and saved to **./output** folder. \n\nOr you can download by clicking the following link")
-            result_pptx_base64 = ExportManager.Export.create_pptx(st.session_state["theme"], data)
-            st.markdown(
-                DataManager.get_output_download_link(
-                    st.session_state["theme"], 
-                    "pptx", 
-                    result_pptx_base64
-                    ),
-                unsafe_allow_html = True
-                )
-        created_time = datetime.datetime.timestamp(datetime.datetime.now())
-        DataManager.post_pptx(
-            project_id = st.session_state["theme"] + str(created_time),
-            file_content = result_pptx_base64,
-            expiration = str(datetime.datetime.today() + datetime.timedelta(365)),
-            user_name = st.session_state['user'],
-            user_email = st.session_state['email']
-        )
-        SheetManager.gs_conn(
-            "update",
-            st.session_state["theme"],
-            len(st.session_state["news_raw"]),
-            list(st.session_state["pdf_results"].keys()),
-            st.session_state['user'],
-            st.session_state['email'],
-            created_time
-        )
+                # print(data)
+                # print(type(data))
+                st.success("Your trend report has been created and saved to **./output** folder. \n\nOr you can download by clicking the following link")
+                result_pptx_base64 = ExportManager.Export.create_pptx(st.session_state["theme"], data)
+                st.markdown(
+                    DataManager.get_output_download_link(
+                        st.session_state["theme"], 
+                        "pptx", 
+                        result_pptx_base64
+                        ),
+                    unsafe_allow_html = True
+                    )
+            created_time = datetime.datetime.timestamp(datetime.datetime.now())
+            DataManager.post_pptx(
+                project_id = st.session_state["theme"] + str(created_time),
+                file_content = result_pptx_base64,
+                expiration = str(datetime.datetime.today() + datetime.timedelta(365)),
+                user_name = st.session_state['user'],
+                user_email = st.session_state['email']
+            )
+            SheetManager.gs_conn(
+                "update",
+                st.session_state["theme"],
+                len(st.session_state["news_raw"]),
+                list(st.session_state["pdf_results"].keys()),
+                st.session_state['user'],
+                st.session_state['email'],
+                created_time
+            )
+            DataManager.send_notification_email(
+                st.session_state['user'],
+                st.session_state['email'],
+                type = 'completed',
+                page = 'trend_report'
+            )
+        except Exception as error:
+            DataManager.send_notification_email(
+                st.session_state['user'],
+                st.session_state['email'],
+                type = 'failed',
+                page = 'trend_report',
+                error = error
+            )
 
 def main():
     with st.sidebar:
