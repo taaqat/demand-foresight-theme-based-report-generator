@@ -314,10 +314,12 @@ def UI():
             st.write("""\n\n\n\n\n""")
 
         BOX_call_executor_1.empty()
-        with BOX_call_executor_2.container():
-            st.subheader("執行進度與操作")
         
+            
         try:
+            with BOX_call_executor_2.container():
+                st.subheader("執行進度與操作")
+                FUNC_call_executor_2()
             with BOX_show_result.container():
                 st.subheader("成果連結")
                 st.write("""\n\n\n\n\n""")
