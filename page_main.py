@@ -5,6 +5,7 @@ from scripts.executor import Executor
 
 from managers.data_manager import DataManager
 from managers.export_manager import ExportManager
+from managers.sheet_manager import SheetManager
 
 
 
@@ -16,6 +17,7 @@ from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
 from streamlit_authenticator import Hasher
 import yaml
+import datetime
 
 
 # *********** Config ***********
@@ -38,6 +40,7 @@ if 'pdfs_raw' not in st.session_state:
 if 'stage' not in st.session_state:
     st.session_state['stage'] = "manual_data_processing"
 
+
 st.markdown("""<style>
     div.stButton > button {
         width: 100%;  /* 設置按鈕寬度為頁面寬度的 50% */
@@ -48,6 +51,21 @@ st.markdown("""<style>
     </style>
     """, unsafe_allow_html=True)
 
+@st.dialog("輸入基本資料：")
+def user_info():
+    user = st.text_input("你的暱稱")
+    email = st.text_input("電子信箱")
+
+    if st.button("Submit"):
+        if user == None:
+            st.warning("暱稱請勿留空")
+        if email == None:
+            st.warning("電子信箱請勿留空")
+        if (not user == None) & (not email == None):
+            st.session_state["user"] = user
+            st.session_state["email"] = email
+            st.session_state["user_recorded"] = True
+            st.rerun()
 
 # *** BOX 開頭的變數，為存放不同步驟的 UI 元件的 placeholders
 LEFT_COL, RIGHT_COL = st.columns(2)
@@ -61,7 +79,8 @@ with LEFT_COL:
 with RIGHT_COL:
     BOX_pdf_upload = st.empty()
     BOX_show_result = st.empty()
-    
+
+BOX_S1_BUTTON = st.empty()
 
 # **********************************************************************************************************************************
 # ************************************** Data Upload **********************************************
@@ -131,21 +150,27 @@ def FUNC_right():
     
 
 def FUNC_call_executor_1():
-    if st.button("Undo"):
-        del st.session_state["stage"]
-        st.rerun()
-    if st.button("Rerun"):
-        st.rerun()
+    cl, cr = st.columns(2)
+    with cl:
+        if st.button("Undo"):
+            st.session_state["stage"] = 'manual_data_processing'
+            st.rerun()
+    with cr:
+        if st.button("Rerun"):
+            st.rerun()
     
     Executor.execute_1(st.session_state["theme"], st.session_state["n_split"])
     
 
 def FUNC_call_executor_2():
-    if st.button("Undo"):
-        del st.session_state["stage"]
-        st.rerun()
-    if st.button("Rerun"):
-        st.rerun()
+    cl, cr = st.columns(2)
+    with cl:
+        if st.button("Undo"):
+            st.session_state["stage"] = 'generating'
+            st.rerun()
+    with cr:
+        if st.button("Rerun"):
+            st.rerun()
     Executor.execute_2(st.session_state["theme"])
         
 
@@ -154,7 +179,10 @@ def FUNC_call_executor_2():
  
 def main():
     st.session_state['logged_in'] = True
-    # * 第一部（第一個頁面）：資料上傳與資料處理
+
+    
+
+    # * 第一步（第一個頁面）：資料上傳與資料處理
     if st.session_state['stage'] == "manual_data_processing":
         with BOX_data_process.container():
             st.subheader("請上傳新聞摘要資料")
@@ -164,7 +192,8 @@ def main():
             st.subheader("請上傳研究報告（Optional）")
             FUNC_right()
 
-        c_proceed, c_undo = st.columns(2)
+        with BOX_S1_BUTTON.container():
+            c_proceed, c_undo = st.columns(2)
 
         # * 若確定繼續，則 stage 跳到 generating。結合後面的 if else statement，畫面跳轉至第二步驟的頁面
         with c_proceed:
@@ -173,6 +202,10 @@ def main():
                     st.warning("請上傳新聞資料")
                 else:
                     st.session_state['stage'] = "generating"
+                    if 'trends_in_parts' in st.session_state:
+                        del st.session_state['trends_in_parts']
+                    if 'trends_merged' in st.session_state:
+                        del st.session_state['trends_merged']
                     st.rerun()
 
         # * 若想重新選擇欄位或上傳 pdf，點選 Undo。此舉動會清除所有 session state 變數，請注意。
@@ -185,7 +218,9 @@ def main():
 
     # * 第二步（第二個頁面）：AI 推論分析（前半）
     elif (st.session_state['stage'] == "generating") :
-       
+
+        BOX_S1_BUTTON.empty()
+
         with BOX_show_result.container():
             st.subheader("成果連結")
             st.write("""\n\n\n\n\n""")
@@ -195,7 +230,7 @@ def main():
             FUNC_call_executor_1()
 
             # todo *** Add a block that asks users to check the output so far.
-            edited_text = st.text_area("請確認目前為止的趨勢報告，並且依照喜好進行編輯。", 
+            edited_text = st.text_area("請**確認**到目前為止生成的趨勢報告，並且依照喜好進行**編輯**。", 
                          json.dumps(st.session_state["trends_merged"], indent = 4, ensure_ascii = False),
                          height = 200)
             # ** test whether user breaks the JSON formatting of the string
@@ -218,24 +253,47 @@ def main():
 
         BOX_call_executor_1.empty()
         with BOX_call_executor_2.container():
-            st.subheader("執行進度與中斷操作")
+            st.subheader("執行進度與操作")
             FUNC_call_executor_2()
         
         with BOX_show_result.container():
+            st.subheader("成果連結")
+            st.write("""\n\n\n\n\n""")
             with open(f"./output/{st.session_state["theme"]}_trend_report.json") as f:
                 data = json.load(f)
 
             # print(data)
             # print(type(data))
             st.success("Your trend report has been created and saved to **./output** folder. \n\nOr you can download by clicking the following link")
+            result_pptx_base64 = ExportManager.Export.create_pptx(st.session_state["theme"], data)
             st.markdown(
                 DataManager.get_output_download_link(
                     st.session_state["theme"], 
                     "pptx", 
-                    ExportManager.Export.create_pptx(st.session_state["theme"], data)
+                    result_pptx_base64
                     ),
                 unsafe_allow_html = True
                 )
+        created_time = datetime.datetime.timestamp(datetime.datetime.now())
+        DataManager.post_pptx(
+            project_id = st.session_state["theme"] + str(created_time),
+            file_content = result_pptx_base64,
+            expiration = str(datetime.datetime.today() + datetime.timedelta(365)),
+            user_name = st.session_state['user'],
+            user_email = st.session_state['email']
+        )
+        SheetManager.gs_conn(
+            "update",
+            st.session_state["theme"],
+            len(st.session_state["news_raw"]),
+            list(st.session_state["pdf_results"].keys()),
+            st.session_state['user'],
+            st.session_state['email'],
+            created_time
+        )
+            
+
+
 
 # ------------------------------------------------------------------------------------------------------
 # *** Authentication & Call the main function ***
@@ -276,8 +334,29 @@ if st.secrets['permission']['authenticate'] == True:
                 <p class = powered-by> Powered by 資策會數轉院 <br/>跨域實證服務中心 創新孵化組</p>""", unsafe_allow_html = True)
             st.header("資策會 Demand Foresight Tools")
             st.page_link('page_main.py', label = '主題式趨勢報告產生器', icon = ':material/add_circle:')
+
+            # * Entry Point: 登入後讓使用者輸入基本資料
+            if 'user_recorded' in st.session_state:
+                try:
+                    st.code(f"歡迎使用資策會簡報產生器, {st.session_state['user']}")
+                except:
+                    pass
+                if st.button("重設用戶資料"):
+                    del st.session_state['user_recorded']
+                    st.rerun()
+
+            if "user_recorded" not in st.session_state:
+                if st.button("設定用戶資料"):
+                    user_info()
+                authenticator.logout()
+                st.stop()
+
             authenticator.logout()
+
         main()
+
+            
+        
     elif st.session_state.authentication_status is False:
         st.error('使用者名稱/密碼不正確')
 
