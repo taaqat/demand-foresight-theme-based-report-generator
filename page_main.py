@@ -321,13 +321,11 @@ def UI():
             with BOX_show_result.container():
                 st.subheader("成果連結")
                 st.write("""\n\n\n\n\n""")
-                with open(f"./output/{st.session_state["theme"]}_trend_report.json") as f:
-                    data = json.load(f)
-
+                
                 # print(data)
                 # print(type(data))
                 st.success("Your trend report has been created and saved to **./output** folder. \n\nOr you can download by clicking the following link")
-                result_pptx_base64 = ExportManager.Export.create_pptx(st.session_state["theme"], data)
+                result_pptx_base64 = ExportManager.Export.create_pptx(st.session_state["theme"], st.session_state["merged_report"])
                 st.markdown(
                     DataManager.get_output_download_link(
                         st.session_state["theme"], 
