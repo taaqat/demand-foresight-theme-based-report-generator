@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 from managers.llm_manager import LlmManager
+from managers.data_manager import DataManager
 
 prompt = '''
 你是一個有力的產經分析研究員，目前正在著手進行「印度經濟」相關的分析。
@@ -24,27 +25,41 @@ class Summarizor:
     @staticmethod
     def summarize(df, BOX):
         progress_bar = st.progress(0, "Summarizing")
-
+        
         if 'summarized_data' not in st.session_state:
             st.session_state['summarized_data'] = pd.DataFrame()
 
         results = []
-        for i, row in df.iterrows():
-            with BOX.container(height = 250, border = False):
-                st.markdown('<h4>新聞摘要結果</h4>', unsafe_allow_html = True)
-                st.dataframe(st.session_state['summarized_data'])
+        try:
+            for i, row in df.iterrows():
+                with BOX.container(height = 250, border = False):
+                    st.markdown('<h4>新聞摘要結果</h4>', unsafe_allow_html = True)
+                    st.dataframe(st.session_state['summarized_data'])
 
-            progress_bar.progress(i/len(df), f"Summarizing ({i}/{len(df)})")
-            if row['id'] in [news['id'] for i, news in st.session_state['summarized_data'].iterrows()]:
-                pass
-            else:
-                in_message = f"新聞id: {row['id']}\n\n新聞標題: {row['title']}\n\n內文開始\n---{row['content']}\n---\n內文結束"
-                response = LlmManager.llm_api_call(LlmManager.create_prompt_chain(prompt), in_message)
-                results.append(response)
-                st.session_state['summarized_data'] = pd.DataFrame(results)
-            
-            progress_bar.progress((i+1)/len(df), f"Summarizing ({i + 1}/{len(df)})")
+                progress_bar.progress(i/len(df), f"Summarizing ({i}/{len(df)})")
+                if row['id'] in [news['id'] for i, news in st.session_state['summarized_data'].iterrows()]:
+                    pass
+                else:
+                    in_message = f"新聞id: {row['id']}\n\n新聞標題: {row['title']}\n\n內文開始\n---{row['content']}\n---\n內文結束"
+                    response = LlmManager.llm_api_call(LlmManager.create_prompt_chain(prompt), in_message)
+                    results.append(response)
+                    st.session_state['summarized_data'] = pd.DataFrame(results)
+                
+                progress_bar.progress((i+1)/len(df), f"Summarizing ({i + 1}/{len(df)})")
 
-        st.success("Completed!")
-        progress_bar.empty()
-        
+            st.success("Completed!")
+            progress_bar.empty()
+            DataManager.send_notification_email(
+                st.session_state['user'],
+                st.session_state['email'],
+                type = 'completed',
+                page = 'summary'
+            )
+        except Exception as error:
+            DataManager.send_notification_email(
+                st.session_state['user'],
+                st.session_state['email'],
+                type = 'failed',
+                page = 'summary',
+                error = error
+            )

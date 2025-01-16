@@ -367,6 +367,7 @@ def UI():
                 page = 'trend_report',
                 error = error
             )
+            st.write(error)
 
 def main():
     with st.sidebar:

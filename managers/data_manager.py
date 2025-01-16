@@ -200,10 +200,12 @@ class DataManager:
                             "summary": f"""您的新聞摘要生成失敗！！<br />{error}<br />
                                 <br /><br />Sincerely,<br /><strong>III Trend Report Generator</strong>""",
                             "trend_report":  """您的趨勢報告生成失敗！！
-                                <br /><br />Sincerely,<br /><strong>III Trend Report Generator</strong>"""},
+                                <br /><br />Sincerely,<br /><strong>III Trend Report Generator</strong>"""
+                        },
                         "halfway": {
                             "trend_report":  """您的趨勢報告已經製作到一半囉！請回網頁確認目前為止的內容，並且點擊「繼續」！
-                                <br /><br />Sincerely,<br /><strong>III Trend Report Generator</strong>"""}}
+                                <br /><br />Sincerely,<br /><strong>III Trend Report Generator</strong>"""
+                        }}
 
         # * email_content *
         mail_content = f"""
