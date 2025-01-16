@@ -347,9 +347,16 @@ if st.secrets['permission']['authenticate'] == True:
                     
 
             if "user_recorded" not in st.session_state:
-                user_info()
-                if st.button("設定用戶資料", type = "primary"):
+                try:
                     user_info()
+                except:
+                    pass
+
+                if st.button("設定用戶資料", type = "primary"):
+                    try:
+                        user_info()
+                    except:
+                        pass
                 authenticator.logout()
                 st.stop()
 
