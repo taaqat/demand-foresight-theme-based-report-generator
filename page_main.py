@@ -343,10 +343,11 @@ if st.secrets['permission']['authenticate'] == True:
                     pass
                 if st.button("重設用戶資料"):
                     del st.session_state['user_recorded']
-                    user_info()
+                    st.rerun()
                     
 
             if "user_recorded" not in st.session_state:
+                user_info()
                 if st.button("設定用戶資料", type = "primary"):
                     user_info()
                 authenticator.logout()
