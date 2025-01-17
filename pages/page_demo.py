@@ -1,14 +1,6 @@
 import streamlit as st
-import streamlit_authenticator as stauth
-import pandas as pd
 from managers.data_manager import DataManager
-from managers.sheet_manager import SheetManager
 
-# * --- Config
-if ("set_page_config" not in st.session_state):
-    st.session_state['set_page_config'] = True
-    st.set_page_config(page_title='III Trend Report Generator', page_icon=":tada:", layout="wide")
-    
 @st.dialog("輸入基本資料：")
 def user_info():
     user = st.text_input("你的暱稱")
@@ -25,8 +17,6 @@ def user_info():
             st.session_state["user_recorded"] = True
             st.rerun()
 
-st.title("ARCHIVE")
-
 st.markdown("""<style>
     div.stButton > button {
         width: 100%;  /* 設置按鈕寬度為頁面寬度的 50% */
@@ -37,8 +27,6 @@ st.markdown("""<style>
     </style>
     """, unsafe_allow_html=True)
 
-
-# ------------------------------------------------------------------------------------------------------
 with st.sidebar:
     icon_box, text_box = st.columns((0.2, 0.8))
     with icon_box:
@@ -59,6 +47,7 @@ with st.sidebar:
         st.page_link('pages/page_summarize.py', label = '新聞摘要產生器', icon = ':material/add_circle:')
         st.page_link('pages/page_archive.py', label = 'ARCHIVE', icon = ':material/add_circle:')
         st.page_link('pages/page_demo.py', label = 'DEMO', icon = ':material/add_circle:')
+
 
     # * Entry Point: 登入後讓使用者輸入基本資料
     if 'user_recorded' in st.session_state:
@@ -86,30 +75,14 @@ with st.sidebar:
 
     DataManager.fetch_IP()
 
-# ********* Main *********
-COL_LEFT, COL_RIGHT = st.columns(2)
+st.title("DEMO")
 
-with COL_LEFT:
-    st.session_state['gs'] = SheetManager.gs_conn('fetch')
-    project_id = st.selectbox("選擇專案", options = st.session_state['gs']['project']['id'],
-                 format_func = lambda id: id + f" (Created: {
-                 pd.to_datetime(st.session_state['gs']['project'][st.session_state['gs']['project']['id'] == id]['created_time'], unit = 's').dt.strftime("%Y-%m-%d %H:%M:%S").tolist()[0]} )")
+generator_tab, summarizor_tab = st.tabs(['主題式趨勢報告產生器', '新聞摘要產生器'])
 
-    ll, lr = st.columns((0.9, 0.1))
-    with ll:
-        query = st.button("查詢")
-    with lr:
-        reload_gs = st.button("⟳")
-        if reload_gs:
-            st.cache_data.clear()
-            st.rerun()
+with generator_tab:
+    with st.container(border = True):
+        st.video("https://www.youtube.com/watch?v=FWWyK7ia8Pw")
 
-with COL_RIGHT:
-    st.markdown('<h4>下載連結</h4>', unsafe_allow_html = True)
-    if query:
-        st.markdown(
-            DataManager.get_output_download_link(project_id, 'pptx', DataManager.get_pptx(project_id)),
-            unsafe_allow_html = True
-        )
-    
-    
+with summarizor_tab:
+    with st.container(border = True):
+        st.video("https://www.youtube.com/watch?v=UHgBXs5TZ4o")

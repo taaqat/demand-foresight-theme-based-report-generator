@@ -70,6 +70,8 @@ with st.sidebar:
         st.page_link('page_main.py', label = '主題式趨勢報告產生器', icon = ':material/add_circle:')
         st.page_link('pages/page_summarize.py', label = '新聞摘要產生器', icon = ':material/add_circle:')
         st.page_link('pages/page_archive.py', label = 'ARCHIVE', icon = ':material/add_circle:')
+        st.page_link('pages/page_demo.py', label = 'DEMO', icon = ':material/add_circle:')
+
 
     # * Entry Point: 登入後讓使用者輸入基本資料
     if 'user_recorded' in st.session_state:
