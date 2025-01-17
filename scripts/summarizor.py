@@ -33,8 +33,7 @@ class Summarizor:
         try:
             for i, row in df.iterrows():
                 with BOX.container(height = 250, border = False):
-                    st.markdown('<h4>新聞摘要結果</h4>', unsafe_allow_html = True)
-                    st.dataframe(st.session_state['summarized_data'])
+                    st.dataframe(st.session_state['summarized_data'], width = 1000)
 
                 progress_bar.progress(i/len(df), f"Summarizing ({i}/{len(df)})")
                 if row['id'] in [news['id'] for i, news in st.session_state['summarized_data'].iterrows()]:

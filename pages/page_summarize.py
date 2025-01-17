@@ -1,6 +1,8 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 import pandas as pd
+from io import BytesIO
+
 from managers.data_manager import DataManager
 from scripts.summarizor import Summarizor
 
@@ -39,6 +41,12 @@ st.markdown("""<style>
 
 if "summarization_status" not in st.session_state:
     st.session_state["summarization_status"] = "not_started"
+
+if "summary_done" not in st.session_state:
+    st.session_state["summary_done"] = False
+
+def summary_done_switch():
+    st.session_state["summary_done"] = True
 
 if "news_to_be_summarized" not in st.session_state:
     st.session_state["news_to_be_summarized"] = pd.DataFrame()
@@ -110,37 +118,49 @@ def FORM_news_data_upload():
         st.info('請上傳"csv" 或 "xlsx" 格式，並且具有明確表頭的資料')
 
     if st.button("確認"):
-
-        if pd.DataFrame(raw).empty:
-            st.warning("請上傳新聞資料")
-        else:
-            raw_renamed = raw.rename(
-                columns = {
-                    id_col: "id",
-                    title_col: "title",
-                    content_col: "content"
-                }
-            )
-            raw_renamed = raw_renamed[['id', 'title', 'content']]
-            st.session_state["news_to_be_summarized"] = raw_renamed
-
-        st.rerun()
+        try:
+            if pd.DataFrame(raw).empty:
+                st.warning("請上傳新聞資料")
+            else:
+                raw_renamed = raw.rename(
+                    columns = {
+                        id_col: "id",
+                        title_col: "title",
+                        content_col: "content"
+                    }
+                )
+                raw_renamed = raw_renamed[['id', 'title', 'content']]
+                st.session_state["news_to_be_summarized"] = raw_renamed
+            st.rerun()
+        except ValueError:
+            st.warning("請重新選擇欄位")
+        except KeyError:
+            st.warning("請重新選擇欄位")
+        
 
 # *****************************************  
 # ***************** Main ******************
+st.session_state['news_upload_button_label'] = {"uploaded": "重新上傳", "empty": "點擊上傳欲生成摘要的新聞資料"}
+st.session_state['news_uploaded'] = 'empty'
+if not st.session_state['news_to_be_summarized'].empty:
+    st.session_state['news_uploaded'] = 'uploaded'
+
 if "user_recorded" in st.session_state:
     COL_LEFT, COL_RIGHT = st.columns(2)
     with COL_RIGHT:
         BOX_preview = st.empty()
-        BOX_output = st.empty()
-    
+        
     with COL_LEFT:
     
         BOX_stage_button = st.empty()
         
         if st.session_state['summarization_status'] == 'not_started':
+            with BOX_preview.container():
+                st.markdown('<h4>預覽新聞資料</h4>', unsafe_allow_html = True)
+                st.dataframe(st.session_state["news_to_be_summarized"], width = 1000)
+
             with BOX_stage_button.container():
-                if st.button("點擊上傳欲生成摘要的新聞資料"):
+                if st.button(st.session_state['news_upload_button_label'][st.session_state['news_uploaded']]):
                     FORM_news_data_upload()
                 if st.button("確認送出，開始摘要", type = "primary"):
                     st.session_state['summarized_data'] = pd.DataFrame()
@@ -153,22 +173,49 @@ if "user_recorded" in st.session_state:
                 
 
         if st.session_state['summarization_status'] == 'started':
+            with COL_RIGHT:
+                st.markdown('<h4>新聞摘要結果</h4>', unsafe_allow_html = True)
+                BOX_output = st.empty()
+
             with BOX_stage_button.container():
                 
                 if st.button("上一步"):
                     BOX_stage_button.empty()
                     st.session_state['summarization_status'] = 'not_started'
+                    st.session_state['summary_done'] = False
                     st.rerun()
-                
-                # TODO EXECUTOR FUNCTION
-                Summarizor.summarize(st.session_state["news_to_be_summarized"], BOX_output)
-                
 
-    
+                if st.session_state['summary_done'] == False:
+                    Summarizor.summarize(st.session_state["news_to_be_summarized"], BOX_output)
+                    buffer = BytesIO()
+                    with pd.ExcelWriter(buffer, engine = "xlsxwriter") as writer:
+                        st.session_state["news_to_be_summarized"].to_excel(writer, index = False)
+                    buffer.seek(0)
 
+                    st.download_button(
+                        label = "下載完成檔案",
+                        data = buffer,
+                        file_name = "summary.xlsx",
+                        mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        on_click = summary_done_switch)
+                    
+                
+                    
+                elif st.session_state['summary_done'] == True:
+                    buffer = BytesIO()
+                    with pd.ExcelWriter(buffer, engine = "xlsxwriter") as writer:
+                        st.session_state["news_to_be_summarized"].to_excel(writer, index = False)
+                    buffer.seek(0)
+
+                    st.download_button(
+                        label = "下載完成檔案",
+                        data = buffer,
+                        file_name = "summary.xlsx",
+                        mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        on_click = summary_done_switch)
+                    
 
     if st.session_state['summarization_status'] == 'started':
         with BOX_output.container(height = 250):
-            st.markdown('<h4>新聞摘要結果</h4>', unsafe_allow_html = True)
-            st.dataframe(st.session_state['summarized_data'])
+            st.dataframe(st.session_state['summarized_data'], width = 1000)
             
