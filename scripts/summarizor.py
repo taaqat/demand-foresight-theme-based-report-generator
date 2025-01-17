@@ -3,11 +3,11 @@ import streamlit as st
 from managers.llm_manager import LlmManager
 from managers.data_manager import DataManager
 
-prompt = '''
+prompt = lambda lang, length: f'''
 你是一個有力的產經分析研究員，目前正在著手進行「印度經濟」相關的分析。
 我接下來會輸入印度的新聞（包含新聞 id, 標題和內容），需要請你幫我進行新聞的摘要處理，詳細規則如下：
-1. 每則新聞請幫我先翻譯成「**繁體**中文」
-2. 之後用 200 - 300 字進行重點摘要
+1. 每則新聞請幫我先翻譯成「**{lang}**」
+2. 之後用 {length} ~ {length * 1.25} 字進行重點摘要
 3. 最後按照指定輸出格式回傳給我，「不需要給我其他文字」。
 4. 若沒有足夠的新聞內文讓你摘要，請回傳「無」
 <output schema>
@@ -29,20 +29,22 @@ class Summarizor:
         if 'summarized_data' not in st.session_state:
             st.session_state['summarized_data'] = pd.DataFrame()
 
-        results = []
+        
         try:
             for i, row in df.iterrows():
                 with BOX.container(height = 250, border = False):
                     st.dataframe(st.session_state['summarized_data'], width = 1000)
 
                 progress_bar.progress(i/len(df), f"Summarizing ({i}/{len(df)})")
-                if row['id'] in [news['id'] for i, news in st.session_state['summarized_data'].iterrows()]:
+    
+                if str(row['id']) in [news['id'] for i, news in st.session_state['summarized_data'].iterrows()]:
                     pass
                 else:
                     in_message = f"新聞id: {row['id']}\n\n新聞標題: {row['title']}\n\n內文開始\n---{row['content']}\n---\n內文結束"
-                    response = LlmManager.llm_api_call(LlmManager.create_prompt_chain(prompt), in_message)
-                    results.append(response)
-                    st.session_state['summarized_data'] = pd.DataFrame(results)
+                    response = LlmManager.llm_api_call(LlmManager.create_prompt_chain(prompt(lang = st.session_state['lang'],
+                                                                                             length = st.session_state['len_per_summary'])), in_message)
+                    new_row = pd.DataFrame([response])
+                    st.session_state['summarized_data'] = pd.concat([st.session_state['summarized_data'], new_row], ignore_index = True)
                 
                 progress_bar.progress((i+1)/len(df), f"Summarizing ({i + 1}/{len(df)})")
 
@@ -55,6 +57,7 @@ class Summarizor:
                 page = 'summary'
             )
         except Exception as error:
+            
             DataManager.send_notification_email(
                 st.session_state['user'],
                 st.session_state['email'],
@@ -62,3 +65,4 @@ class Summarizor:
                 page = 'summary',
                 error = error
             )
+            raise error

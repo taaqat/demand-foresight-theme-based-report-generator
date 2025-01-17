@@ -144,6 +144,12 @@ def FORM_news_data_upload():
 # *****************************************  
 # ***************** Main ******************
 st.session_state['news_upload_button_label'] = {"uploaded": "重新上傳", "empty": "點擊上傳欲生成摘要的新聞資料"}
+if 'lang' not in st.session_state:
+    st.session_state['lang'] = '繁體中文'
+
+if 'len_per_summary' not in st.session_state:
+    st.session_state['len_per_summary'] = 30
+
 st.session_state['news_uploaded'] = 'empty'
 if not st.session_state['news_to_be_summarized'].empty:
     st.session_state['news_uploaded'] = 'uploaded'
@@ -163,17 +169,25 @@ if "user_recorded" in st.session_state:
                 st.dataframe(st.session_state["news_to_be_summarized"], width = 1000)
 
             with BOX_stage_button.container():
-                if st.button(st.session_state['news_upload_button_label'][st.session_state['news_uploaded']]):
-                    FORM_news_data_upload()
-                if st.button("確認送出，開始摘要", type = "primary"):
-                    st.session_state['summarized_data'] = pd.DataFrame()
-                    if not st.session_state["news_to_be_summarized"].empty:
-                        BOX_stage_button.empty()
-                        st.session_state['summarization_status'] = 'started'
-                        st.rerun()
-                    else:
-                        st.warning("請上傳欲摘要的新聞資料")
+                c1, c2 = st.columns(2)
+                with c1:
+                    if st.button(st.session_state['news_upload_button_label'][st.session_state['news_uploaded']]):
+                        FORM_news_data_upload()
+                    st.session_state['lang'] = st.selectbox("請選擇欲產生摘要的語言", ["繁體中文", "英文", "日文"])
+
+                with c2:
+                    if st.button("確認送出，開始摘要", type = "primary"):
+                        st.session_state['summarized_data'] = pd.DataFrame()
+                        if not st.session_state["news_to_be_summarized"].empty:
+                            BOX_stage_button.empty()
+                            st.session_state['summarization_status'] = 'started'
+                            st.rerun()
+                        else:
+                            st.warning("請上傳欲摘要的新聞資料")
+                    st.session_state['len_per_summary'] = st.slider("請選擇每篇新聞摘要的理想**長度**", 30, 300)
                 
+                
+
 
         if st.session_state['summarization_status'] == 'started':
             with COL_RIGHT:
