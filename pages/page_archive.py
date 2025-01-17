@@ -1,6 +1,8 @@
 import streamlit as st
 import streamlit_authenticator as stauth
+import pandas as pd
 from managers.data_manager import DataManager
+from managers.sheet_manager import SheetManager
 
 # * --- Config
 if ("set_page_config" not in st.session_state):
@@ -81,7 +83,23 @@ with st.sidebar:
                 pass
         st.stop()
 
-    
+# ********* Main *********
+COL_LEFT, COL_RIGHT = st.columns(2)
 
+with COL_LEFT:
+    st.session_state['gs'] = SheetManager.gs_conn('fetch')
+    project_id = st.selectbox("選擇專案", options = st.session_state['gs']['project']['id'],
+                 format_func = lambda id: id + f" (Created: {
+                 pd.to_datetime(st.session_state['gs']['project'][st.session_state['gs']['project']['id'] == id]['created_time'], unit = 's').dt.strftime("%Y-%m-%d %H:%M:%S").tolist()[0]} )")
+
+    query = st.button("查詢")
+
+with COL_RIGHT:
+    st.markdown('<h4>下載連結</h4>', unsafe_allow_html = True)
+    if query:
+        st.markdown(
+            DataManager.get_output_download_link(project_id, 'pptx', DataManager.get_pptx(project_id)),
+            unsafe_allow_html = True
+        )
     
     
