@@ -250,4 +250,4 @@ class DataManager:
         response = requests.get("https://api.ipify.org?format=json")
         public_ip = response.json()["ip"]
 
-        st.caption(f"Deployed IP: **:blue[{public_ip}]**")
+        st.caption(f"Deployed IP Address: **:blue[{public_ip}]**")
