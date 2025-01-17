@@ -92,7 +92,14 @@ with COL_LEFT:
                  format_func = lambda id: id + f" (Created: {
                  pd.to_datetime(st.session_state['gs']['project'][st.session_state['gs']['project']['id'] == id]['created_time'], unit = 's').dt.strftime("%Y-%m-%d %H:%M:%S").tolist()[0]} )")
 
-    query = st.button("查詢")
+    ll, lr = st.columns((0.9, 0.1))
+    with ll:
+        query = st.button("查詢")
+    with lr:
+        reload_gs = st.button("⟳")
+        if reload_gs:
+            st.cache_data.clear()
+            st.rerun()
 
 with COL_RIGHT:
     st.markdown('<h4>下載連結</h4>', unsafe_allow_html = True)
