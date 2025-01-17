@@ -244,3 +244,10 @@ class DataManager:
                 # print("Notification mail sent to your email address!")
         except Exception:
             st.warning(f"Failed to send the email: {Exception}")
+
+    @staticmethod
+    def fetch_IP():
+        response = requests.get("https://api.ipify.org?format=json")
+        public_ip = response.json()["ip"]
+
+        st.caption(f"Deployed IP: **:blue[{public_ip}]**")

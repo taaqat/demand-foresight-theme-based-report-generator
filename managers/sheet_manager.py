@@ -12,6 +12,7 @@ class SheetManager:
 
     # --- Communicate with Google Sheet that records the project name & id
     @staticmethod
+    @st.cache_data
     def gs_conn(
         method: str, 
         project_name: str = None, 

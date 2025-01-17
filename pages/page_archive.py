@@ -83,6 +83,8 @@ with st.sidebar:
                 pass
         st.stop()
 
+    DataManager.fetch_IP()
+
 # ********* Main *********
 COL_LEFT, COL_RIGHT = st.columns(2)
 

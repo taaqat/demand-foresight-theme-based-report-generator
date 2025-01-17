@@ -94,6 +94,7 @@ with st.sidebar:
             except:
                 pass
         st.stop()
+    DataManager.fetch_IP()
 
 
 # * 新聞資料上傳的表單
