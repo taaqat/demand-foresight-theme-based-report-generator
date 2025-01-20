@@ -9,21 +9,7 @@ if ("set_page_config" not in st.session_state):
     st.session_state['set_page_config'] = True
     st.set_page_config(page_title='III Trend Report Generator', page_icon=":tada:", layout="wide")
     
-@st.dialog("輸入基本資料：")
-def user_info():
-    user = st.text_input("你的暱稱")
-    email = st.text_input("電子信箱")
 
-    if st.button("Submit"):
-        if user == None:
-            st.warning("暱稱請勿留空")
-        if email == None:
-            st.warning("電子信箱請勿留空")
-        if (not user == None) & (not email == None):
-            st.session_state["user"] = user
-            st.session_state["email"] = email
-            st.session_state["user_recorded"] = True
-            st.rerun()
 
 st.title("ARCHIVE")
 
@@ -71,18 +57,6 @@ with st.sidebar:
             st.rerun()
         
 
-    if "user_recorded" not in st.session_state:
-        try:
-            user_info()
-        except:
-            pass
-
-        if st.button("設定用戶資料", type = "primary"):
-            try:
-                user_info()
-            except:
-                pass
-        st.stop()
 
     DataManager.fetch_IP()
 
