@@ -22,7 +22,8 @@ class Generator:
     @staticmethod
     def news_gen(theme, in_message, i):
 
-        chain = LlmManager.create_prompt_chain(PromptManager.News.basic_gen(theme))
+        chain = LlmManager.create_prompt_chain(PromptManager.News.basic_gen(theme),
+                                               st.session_state['model'])
         
         # ** Generating by part
         if "trends_in_parts" not in st.session_state.keys():
@@ -44,7 +45,8 @@ class Generator:
         # ** Aggregatin three parts
         
         in_message = json.dumps(st.session_state["trends_in_parts"])
-        chain = LlmManager.create_prompt_chain(PromptManager.News.aggregate())
+        chain = LlmManager.create_prompt_chain(PromptManager.News.aggregate(),
+                                               st.session_state['model'])
         response = LlmManager.llm_api_call(chain, in_message)
 
         st.session_state["trends_merged"] = response
@@ -66,7 +68,8 @@ class Generator:
         else:
             trends = "\n\n".join([f'{name}: {report}'.replace("{", "(").replace("}", ")") for name, report in st.session_state["trends_confirmed"].items()])
             # st.write(trends)
-            chain = LlmManager.create_prompt_chain(PromptManager.Pdf.basic_gen(theme, trends))
+            chain = LlmManager.create_prompt_chain(PromptManager.Pdf.basic_gen(theme, trends),
+                                                   st.session_state['model'])
 
             if len(inputs) > 50:
                 in_message_lists = np.array_split(inputs, 5)
@@ -74,7 +77,8 @@ class Generator:
                 for _ in in_message_lists:
                     in_message = "\n".join(_)
                     result += json.dumps(LlmManager.llm_api_call(chain, in_message), ensure_ascii = False) + "\n"
-                pdf_merge_chain = LlmManager.create_prompt_chain(PromptManager.Pdf.aggregate(theme, trends))
+                pdf_merge_chain = LlmManager.create_prompt_chain(PromptManager.Pdf.aggregate(theme, trends),
+                                                                 st.session_state['model'])
                 response = LlmManager.llm_api_call(pdf_merge_chain, result)
 
             else:
@@ -92,7 +96,8 @@ class Generator:
         if "merged_report" not in st.session_state:
             st.session_state["merged_report"] = {}
 
-        chain = LlmManager.create_prompt_chain(PromptManager.Merge.merge(trend_idx))
+        chain = LlmManager.create_prompt_chain(PromptManager.Merge.merge(trend_idx), 
+                                               st.session_state['model'])
         pdfs = ""
         try:
             for filename, content in st.session_state["pdf_results"].items():
