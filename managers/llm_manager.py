@@ -54,8 +54,10 @@ class LlmManager:
             if st.button("確認"):
                 if user == None:
                     st.warning("暱稱請勿留空")
+                    st.stop()
                 if email == None:
                     st.warning("電子信箱請勿留空")
+                    st.stop()
                 st.session_state["user"] = user
                 st.session_state["email"] = email
                 st.session_state['CLAUDE_KEY'] = tk
@@ -72,6 +74,10 @@ class LlmManager:
             if st.button("確認"):
                 if user == None:
                     st.warning("暱稱請勿留空")
+                    st.stop()
+                if email == None:
+                    st.warning("電子信箱請勿留空")
+                    st.stop()
                 st.session_state["user"] = user
                 st.session_state["email"] = email
                 st.session_state['CLAUDE_KEY'] = st.secrets['CLAUDE_KEY']
