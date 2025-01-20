@@ -6,6 +6,7 @@ from scripts.executor import Executor
 from managers.data_manager import DataManager
 from managers.export_manager import ExportManager
 from managers.sheet_manager import SheetManager
+from managers.llm_manager import LlmManager
 
 
 
@@ -41,6 +42,15 @@ if 'pdfs_raw' not in st.session_state:
 # 初始化 stage
 if 'stage' not in st.session_state:
     st.session_state['stage'] = "manual_data_processing"
+
+if 'CLAUDE_KEY' not in st.session_state:
+    st.session_state['CLAUDE_KEY'] = " "
+
+if 'KEY_verified' not in st.session_state:
+    st.session_state['KEY_verified'] = False
+
+if 'model' not in st.session_state:
+    st.session_state['model'] = LlmManager.init_model()
 
 
 st.markdown("""<style>

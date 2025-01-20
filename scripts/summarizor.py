@@ -42,8 +42,12 @@ class Summarizor:
                     pass
                 else:
                     in_message = f"新聞id: {row['id']}\n\n新聞標題: {row['title']}\n\n內文開始\n---{row['content']}\n---\n內文結束"
-                    response = LlmManager.llm_api_call(LlmManager.create_prompt_chain(prompt(lang = st.session_state['lang'],
-                                                                                             length = st.session_state['len_per_summary'])), in_message)
+                    response = LlmManager.llm_api_call(
+                        LlmManager.create_prompt_chain(prompt(lang = st.session_state['lang'],
+                                                              length = st.session_state['len_per_summary']),
+                                                              st.session_state['model']), 
+                                                              in_message)
+                                                
                     new_row = pd.DataFrame([response])
                     st.session_state['summarized_data'] = pd.concat([st.session_state['summarized_data'], new_row], ignore_index = True)
                 

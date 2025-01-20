@@ -4,6 +4,7 @@ import pandas as pd
 from io import BytesIO
 
 from managers.data_manager import DataManager
+from managers.llm_manager import LlmManager
 from scripts.summarizor import Summarizor
 
 
@@ -86,13 +87,13 @@ with st.sidebar:
 
     if "user_recorded" not in st.session_state:
         try:
-            user_info()
+            LlmManager.user_info()
         except:
             pass
 
         if st.button("設定用戶資料", type = "primary"):
             try:
-                user_info()
+                LlmManager.user_info()
             except:
                 pass
         st.stop()
