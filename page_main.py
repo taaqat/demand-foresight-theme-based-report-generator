@@ -63,21 +63,7 @@ st.markdown("""<style>
     </style>
     """, unsafe_allow_html=True)
 
-@st.dialog("輸入基本資料：")
-def user_info():
-    user = st.text_input("你的暱稱")
-    email = st.text_input("電子信箱")
 
-    if st.button("Submit"):
-        if user == None:
-            st.warning("暱稱請勿留空")
-        if email == None:
-            st.warning("電子信箱請勿留空")
-        if (not user == None) & (not email == None):
-            st.session_state["user"] = user
-            st.session_state["email"] = email
-            st.session_state["user_recorded"] = True
-            st.rerun()
 
 # *** BOX 開頭的變數，為存放不同步驟的 UI 元件的 placeholders
 LEFT_COL, RIGHT_COL = st.columns(2)
@@ -419,13 +405,13 @@ def main():
     if "user_recorded" not in st.session_state:
     
         try:
-            user_info()
+            LlmManager.user_info()
         except:
             pass
         with st.sidebar:
             if st.button("設定用戶資料", type = "primary"):
                 try:
-                    user_info()
+                    LlmManager.user_info()
                 except:
                     pass
         st.stop()
