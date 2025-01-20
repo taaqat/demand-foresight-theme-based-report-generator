@@ -199,7 +199,12 @@ class ExportManager:
 
             # Second Slide: Representative Events & Important stakeholders
             key_datas = "\n".join([key_data for key_data in trend['<e>報告中的相關數據點']])
-            important_stakeholders = "\n".join([f" {key}: \n   {"\n   ".join(value)}" for key, value in trend["<i>重要關係人"].items()])
+            stakeholders = []
+            for key, value in trend['<i>重要關係人'].items():
+                value_text = "\n   ".join(value)
+                stakeholders.append(f' {key}: \n   {value_text}')
+            important_stakeholders = "\n".join(stakeholders)
+
 
             ExportManager.add_slide(prs = prs, topic = topic,
                 title = f"{trend_type}{trend_number}： {trend['<a>趨勢名稱']}",

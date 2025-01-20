@@ -92,8 +92,7 @@ COL_LEFT, COL_RIGHT = st.columns(2)
 with COL_LEFT:
     st.session_state['gs'] = SheetManager.gs_conn('fetch')
     project_id = st.selectbox("選擇專案", options = st.session_state['gs']['project']['id'],
-                 format_func = lambda id: id + f" (Created: {
-                 pd.to_datetime(st.session_state['gs']['project'][st.session_state['gs']['project']['id'] == id]['created_time'], unit = 's').dt.strftime("%Y-%m-%d %H:%M:%S").tolist()[0]} )")
+                 format_func = lambda id: id + f" (Created: {pd.to_datetime(st.session_state['gs']['project'][st.session_state['gs']['project']['id'] == id]['created_time'], unit = 's').dt.strftime('%Y-%m-%d %H:%M:%S').tolist()[0]} )")
 
     ll, lr = st.columns((0.9, 0.1))
     with ll:
