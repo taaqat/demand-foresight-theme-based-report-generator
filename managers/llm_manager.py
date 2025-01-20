@@ -45,17 +45,18 @@ class LlmManager:
     @staticmethod
     @st.dialog("輸入基本資料：")
     def user_info():
-        user = st.text_input("你的暱稱")
-        email = st.text_input("電子信箱")
+        
 
         
         if st.secrets['permission']['user_token'] == True:
+            user = st.text_input("你的暱稱")
+            email = st.text_input("電子信箱")
             tk = st.text_input("請輸入您的 Claude API Token")
             if st.button("確認"):
-                if user == None:
+                if not user:
                     st.warning("暱稱請勿留空")
                     st.stop()
-                if email == None:
+                if not email:
                     st.warning("電子信箱請勿留空")
                     st.stop()
                 st.session_state["user"] = user
@@ -71,6 +72,8 @@ class LlmManager:
                     except Exception as e:
                         st.warning("Invalid Token")
         else:
+            user = st.text_input("你的暱稱")
+            email = st.text_input("電子信箱")
             if st.button("確認"):
                 if user == None:
                     st.warning("暱稱請勿留空")
