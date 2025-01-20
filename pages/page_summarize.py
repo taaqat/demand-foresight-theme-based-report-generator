@@ -184,7 +184,7 @@ if "user_recorded" in st.session_state:
                             st.rerun()
                         else:
                             st.warning("請上傳欲摘要的新聞資料")
-                    st.session_state['len_per_summary'] = st.slider("請選擇每篇新聞摘要的理想**長度**", 30, 300)
+                    st.session_state['len_per_summary'] = st.slider("請選擇每篇新聞摘要的理想**長度**", 30, 300, step = 5)
                 
                 
 
