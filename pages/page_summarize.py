@@ -207,7 +207,7 @@ if "user_recorded" in st.session_state:
                     Summarizor.summarize(st.session_state["news_to_be_summarized"], BOX_output)
                     buffer = BytesIO()
                     with pd.ExcelWriter(buffer, engine = "xlsxwriter") as writer:
-                        st.session_state["news_to_be_summarized"].to_excel(writer, index = False)
+                        st.session_state['summarized_data'].to_excel(writer, index = False)
                     buffer.seek(0)
 
                     st.download_button(
