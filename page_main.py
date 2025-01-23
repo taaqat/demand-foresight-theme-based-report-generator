@@ -50,7 +50,10 @@ if 'KEY_verified' not in st.session_state:
     st.session_state['KEY_verified'] = False
 
 if 'model' not in st.session_state:
-    st.session_state['model'] = LlmManager.init_model()
+    st.session_state['model'] = ""
+
+if 'model_type' not in st.session_state:
+    st.session_state['model_type'] = ''
 
 
 st.markdown("""<style>

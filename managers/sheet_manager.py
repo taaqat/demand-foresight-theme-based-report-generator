@@ -1,6 +1,8 @@
 from streamlit_gsheets import GSheetsConnection
 import streamlit as st
 import pandas as pd
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 import datetime
 
 from managers.export_manager import ExportManager
@@ -64,6 +66,52 @@ class SheetManager:
             
             return f'project {project_name} has been recorded to Google Sheet.'
             
+    class SummaryGSDB:
+
+        @staticmethod
+        def authenticate_google_sheets(secrets):
+            scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(secrets, scope)
+            client = gspread.authorize(creds)
+            return client
+        
+        @staticmethod
+        def extract_sheet_id(sheet_url):
+            try:
+                return sheet_url.split("/d/")[1].split("/")[0]
+            except IndexError:
+                st.error("無效的試算表連結，請檢查 URL 格式。")
+                return None
+            
+        @staticmethod
+        def fetch(client, sheet_url):           # * client: the return value of authenticate_google_sheets(secrets)
+            if sheet_url:
+                sheet_id = SheetManager.SummaryGSDB.extract_sheet_id(sheet_url)
+                if sheet_id:
+                    try:
+                        sheet = client.open_by_key(sheet_id)
+                        worksheet = sheet.sheet1
+                        data = worksheet.get_all_records()
+
+                        return data
+                    except Exception as e:
+                        return e
+                    
+        @staticmethod
+        def insert(client, sheet_url, row: list):
+            if sheet_url:
+                sheet_id = SheetManager.SummaryGSDB.extract_sheet_id(sheet_url)
+                if sheet_id:
+                    try:
+                        sheet = client.open_by_key(sheet_id)
+                        worksheet = sheet.sheet1
+                        worksheet.append_row(row)
+
+                        records = worksheet.get_all_records()
+                        
+                    except Exception as e:
+                        return f"Connection Failed: {e}"
+
 if __name__ == "__main__":
     # SheetManager.gs_conn(
     #     "update",

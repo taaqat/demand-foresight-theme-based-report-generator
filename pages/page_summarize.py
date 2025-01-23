@@ -1,10 +1,12 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 import pandas as pd
+import json
 from io import BytesIO
 
 from managers.data_manager import DataManager
 from managers.llm_manager import LlmManager
+from managers.sheet_manager import SheetManager
 from scripts.summarizor import Summarizor
 
 
@@ -170,25 +172,28 @@ if "user_recorded" in st.session_state:
                 st.dataframe(st.session_state["news_to_be_summarized"], width = 1000)
 
             with BOX_stage_button.container():
+                if st.button(st.session_state['news_upload_button_label'][st.session_state['news_uploaded']]):
+                    FORM_news_data_upload()
+
                 c1, c2 = st.columns(2)
                 with c1:
-                    if st.button(st.session_state['news_upload_button_label'][st.session_state['news_uploaded']]):
-                        FORM_news_data_upload()
                     st.session_state['lang'] = st.selectbox("請選擇欲產生摘要的語言", ["繁體中文", "英文", "日文"])
-
                 with c2:
-                    if st.button("確認送出，開始摘要", type = "primary"):
-                        st.session_state['summarized_data'] = pd.DataFrame()
-                        if not st.session_state["news_to_be_summarized"].empty:
-                            BOX_stage_button.empty()
-                            st.session_state['summarization_status'] = 'started'
-                            st.rerun()
-                        else:
-                            st.warning("請上傳欲摘要的新聞資料")
                     st.session_state['len_per_summary'] = st.slider("請選擇每篇新聞摘要的理想**長度**", 30, 300, step = 5)
-                
-                
 
+                sheet_url = st.text_input("請輸入可編輯之 Google Sheet 連結（Optional）")
+                
+                if st.button("確認送出，開始摘要", type = "primary"):
+                    st.session_state['summarized_data'] = pd.DataFrame()
+                    st.session_state['sheet_url'] = sheet_url
+                    if not st.session_state["news_to_be_summarized"].empty:
+                        BOX_stage_button.empty()
+                        st.session_state['summarization_status'] = 'started'
+                        st.rerun()
+                    else:
+                        st.warning("請上傳欲摘要的新聞資料")
+                
+        
 
         if st.session_state['summarization_status'] == 'started':
             with COL_RIGHT:
@@ -204,10 +209,17 @@ if "user_recorded" in st.session_state:
                     st.rerun()
 
                 if st.session_state['summary_done'] == False:
-                    Summarizor.summarize(st.session_state["news_to_be_summarized"], BOX_output)
+                    # * Initialize google sheet client
+                    if 'sheet_url' in st.session_state:
+                        sheet_client = SheetManager.SummaryGSDB.authenticate_google_sheets(json.loads(st.secrets['gsheet-credits']['credits']))
+                        Summarizor.summarize(st.session_state["news_to_be_summarized"], BOX_output, sheet_client)
+                    else:
+                        Summarizor.summarize(st.session_state["news_to_be_summarized"], BOX_output)
+
+                    
                     buffer = BytesIO()
                     with pd.ExcelWriter(buffer, engine = "xlsxwriter") as writer:
-                        st.session_state["news_to_be_summarized"].to_excel(writer, index = False)
+                        st.session_state['summarized_data'].to_excel(writer, index = False)
                     buffer.seek(0)
 
                     st.download_button(

@@ -1,6 +1,7 @@
 pandas
 python-dotenv
 langchain-anthropic
+langchain-openai
 langchain-core
 langchain
 requests

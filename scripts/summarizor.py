@@ -1,7 +1,9 @@
 import pandas as pd
 import streamlit as st
+import json
 from managers.llm_manager import LlmManager
 from managers.data_manager import DataManager
+from managers.sheet_manager import SheetManager
 
 prompt = lambda lang, length: f'''
 你是一個有力的產經分析研究員，目前正在著手進行「印度經濟」相關的分析。
@@ -24,7 +26,7 @@ prompt = lambda lang, length: f'''
 class Summarizor:
     
     @staticmethod
-    def summarize(df, BOX):
+    def summarize(df, BOX, client = None):
         progress_bar = st.progress(0, "Summarizing")
         
         if 'summarized_data' not in st.session_state:
@@ -47,7 +49,17 @@ class Summarizor:
                                                               length = st.session_state['len_per_summary']),
                                                               st.session_state['model']), 
                                                               in_message)
-                                                
+                    
+                    # * 試著將結果 Insert 進去 Google Sheeet
+                    if client is not None:
+                        try:
+                            res_row = [value for key, value in response.items()]
+                            SheetManager.SummaryGSDB.insert(
+                                client, st.session_state["sheet_url"], res_row
+                            )
+                        except:
+                            st.warning("Failed to store the new row to the objective google sheet link")
+                    
                     new_row = pd.DataFrame([response])
                     st.session_state['summarized_data'] = pd.concat([st.session_state['summarized_data'], new_row], ignore_index = True)
                 
