@@ -437,10 +437,11 @@ if st.secrets['permission']['authenticate'] == True:
 
     if st.session_state.authentication_status:
         st.session_state.authenticator = authenticator
-        main()
         with st.sidebar:
             authenticator.logout()
             DataManager.fetch_IP()
+        main()
+        
 
     
     elif st.session_state.authentication_status is False:
