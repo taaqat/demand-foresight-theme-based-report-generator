@@ -75,30 +75,6 @@ with st.sidebar:
         st.page_link('pages/page_archive.py', label = 'ARCHIVE', icon = ':material/add_circle:')
         st.page_link('pages/page_demo.py', label = 'DEMO', icon = ':material/add_circle:')
 
-
-    # * Entry Point: 登入後讓使用者輸入基本資料
-    if 'user_recorded' in st.session_state:
-        try:
-            st.info(f"Dear **{st.session_state['user']}**, 歡迎使用資策會簡報產生器")
-        except:
-            pass
-        if st.button("重設用戶資料"):
-            del st.session_state['user_recorded']
-            st.rerun()
-        
-
-    if "user_recorded" not in st.session_state:
-        try:
-            LlmManager.user_info()
-        except:
-            pass
-
-        if st.button("設定用戶資料", type = "primary"):
-            try:
-                LlmManager.user_info()
-            except:
-                pass
-        st.stop()
     DataManager.fetch_IP()
 
 
@@ -157,7 +133,7 @@ st.session_state['news_uploaded'] = 'empty'
 if not st.session_state['news_to_be_summarized'].empty:
     st.session_state['news_uploaded'] = 'uploaded'
 
-if "user_recorded" in st.session_state:
+def main():
     COL_LEFT, COL_RIGHT = st.columns(2)
     with COL_RIGHT:
         BOX_preview = st.empty()
@@ -248,4 +224,24 @@ if "user_recorded" in st.session_state:
     if st.session_state['summarization_status'] == 'started':
         with BOX_output.container(height = 250):
             st.dataframe(st.session_state['summarized_data'], width = 1000)
-            
+
+
+if 'user_recorded' in st.session_state:
+    if 'user_recorded' in st.session_state:
+        with st.sidebar:
+            st.info(f"歡迎使用資策會簡報產生器")
+            if st.button("重新選擇模型"):
+                del st.session_state['user_recorded']
+                st.rerun()
+
+    main()
+    
+
+elif "user_recorded" not in st.session_state:
+    st.info("**請設定欲使用的模型。**")
+    if st.button("點擊開啟選單"):
+        try:
+            LlmManager.user_info()
+        except:
+            pass
+    st.stop()

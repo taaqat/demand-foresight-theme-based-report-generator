@@ -185,7 +185,7 @@ def FUNC_left():
     ll_3, lr_3 = st.columns(2)
     with ll_3:
         # ** 主題名稱
-        st.session_state["theme"] = st.text_input("請輸入**主題名稱**")
+        st.session_state["theme"] = st.text_input("請輸入**主題名稱**（勿含有阿拉伯數字）")
     with lr_3:
         # ** 拆分次數
         st.session_state["n_split"] = st.slider("請設定**批次數量**", 2, 10, step = 1)
@@ -384,45 +384,36 @@ def main():
             </style>
             <p class = powered-by> Powered by 資策會數轉院 <br/>跨域實證服務中心 創新孵化組</p>""", unsafe_allow_html = True)
         st.header("資策會 Demand Foresight Tools")
-        with st.sidebar:
-            st.page_link('page_main.py', label = '主題式趨勢報告產生器', icon = ':material/add_circle:')
-            st.page_link('pages/page_summarize.py', label = '新聞摘要產生器', icon = ':material/add_circle:')
-            st.page_link('pages/page_archive.py', label = 'ARCHIVE', icon = ':material/add_circle:')
-            st.page_link('pages/page_demo.py', label = 'DEMO', icon = ':material/add_circle:')
+        
+        st.page_link('page_main.py', label = '主題式趨勢報告產生器', icon = ':material/add_circle:')
+        st.page_link('pages/page_summarize.py', label = '新聞摘要產生器', icon = ':material/add_circle:')
+        st.page_link('pages/page_archive.py', label = 'ARCHIVE', icon = ':material/add_circle:')
+        st.page_link('pages/page_demo.py', label = 'DEMO', icon = ':material/add_circle:')
 
+        DataManager.fetch_IP()
 
 
     # * Entry Point: 登入後讓使用者輸入基本資料
     if 'user_recorded' in st.session_state:
-        try:
-            with st.sidebar:
-                st.info(f"Dear **{st.session_state['user']}**, 歡迎使用資策會簡報產生器")
-        except:
-            pass
         with st.sidebar:
-            if st.button("重設用戶資料"):
+            st.info(f"歡迎使用資策會簡報產生器")
+            if st.button("重新選擇模型"):
                 del st.session_state['user_recorded']
                 st.rerun()
+
+        UI()
         
 
     if "user_recorded" not in st.session_state:
-    
-        try:
-            LlmManager.user_info()
-        except:
-            pass
-        with st.sidebar:
-            if st.button("設定用戶資料", type = "primary"):
-                try:
-                    LlmManager.user_info()
-                except:
-                    pass
+        st.info("**請設定欲使用的模型。**")
+        if st.button("點擊開啟選單"):
+            try:
+                LlmManager.user_info()
+            except:
+                pass
         st.stop()
 
-    
-
-    if "user_recorded" in st.session_state:
-        UI()
+        
 
 # ------------------------------------------------------------------------------------------------------
 # *** Authentication & Call the main function ***
@@ -446,10 +437,11 @@ if st.secrets['permission']['authenticate'] == True:
 
     if st.session_state.authentication_status:
         st.session_state.authenticator = authenticator
-        main()
         with st.sidebar:
             authenticator.logout()
             DataManager.fetch_IP()
+        main()
+        
 
     
     elif st.session_state.authentication_status is False:
