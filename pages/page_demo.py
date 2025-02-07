@@ -26,26 +26,23 @@ with st.sidebar:
         </style>
         <p class = powered-by> Powered by 資策會數轉院 <br/>跨域實證服務中心 創新孵化組</p>""", unsafe_allow_html = True)
     st.header("資策會 Demand Foresight Tools")
-    with st.sidebar:
-        st.page_link('page_main.py', label = '主題式趨勢報告產生器', icon = ':material/add_circle:')
-        st.page_link('pages/page_summarize.py', label = '新聞摘要產生器', icon = ':material/add_circle:')
-        st.page_link('pages/page_archive.py', label = 'ARCHIVE', icon = ':material/add_circle:')
-        st.page_link('pages/page_demo.py', label = 'DEMO', icon = ':material/add_circle:')
+    st.page_link('page_main.py', label = '主題式趨勢報告產生器', icon = ':material/add_circle:')
+    st.page_link('pages/page_summarize.py', label = '新聞摘要產生器', icon = ':material/add_circle:')
+    st.page_link('pages/page_archive.py', label = 'ARCHIVE', icon = ':material/add_circle:')
+    st.page_link('pages/page_demo.py', label = 'DEMO', icon = ':material/add_circle:')
+    DataManager.fetch_IP()
 
 
     # * Entry Point: 登入後讓使用者輸入基本資料
     if 'user_recorded' in st.session_state:
         try:
-            st.info(f"Dear **{st.session_state['user']}**, 歡迎使用資策會簡報產生器")
+            st.info(f"歡迎使用資策會簡報產生器")
         except:
             pass
-        if st.button("重設用戶資料"):
+        if st.button("重新選擇模型"):
             del st.session_state['user_recorded']
             st.rerun()
-        
-
-
-    DataManager.fetch_IP()
+     
 
 st.title("DEMO")
 

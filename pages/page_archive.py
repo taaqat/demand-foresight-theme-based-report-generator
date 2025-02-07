@@ -1,8 +1,11 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 import pandas as pd
+import re
 from managers.data_manager import DataManager
 from managers.sheet_manager import SheetManager
+
+from gspread.exceptions import APIError
 
 # * --- Config
 if ("set_page_config" not in st.session_state):
@@ -40,33 +43,35 @@ with st.sidebar:
         </style>
         <p class = powered-by> Powered by 資策會數轉院 <br/>跨域實證服務中心 創新孵化組</p>""", unsafe_allow_html = True)
     st.header("資策會 Demand Foresight Tools")
-    with st.sidebar:
-        st.page_link('page_main.py', label = '主題式趨勢報告產生器', icon = ':material/add_circle:')
-        st.page_link('pages/page_summarize.py', label = '新聞摘要產生器', icon = ':material/add_circle:')
-        st.page_link('pages/page_archive.py', label = 'ARCHIVE', icon = ':material/add_circle:')
-        st.page_link('pages/page_demo.py', label = 'DEMO', icon = ':material/add_circle:')
+    st.page_link('page_main.py', label = '主題式趨勢報告產生器', icon = ':material/add_circle:')
+    st.page_link('pages/page_summarize.py', label = '新聞摘要產生器', icon = ':material/add_circle:')
+    st.page_link('pages/page_archive.py', label = 'ARCHIVE', icon = ':material/add_circle:')
+    st.page_link('pages/page_demo.py', label = 'DEMO', icon = ':material/add_circle:')
+    DataManager.fetch_IP()
 
     # * Entry Point: 登入後讓使用者輸入基本資料
     if 'user_recorded' in st.session_state:
         try:
-            st.info(f"Dear **{st.session_state['user']}**, 歡迎使用資策會簡報產生器")
+            st.info(f"歡迎使用資策會簡報產生器")
         except:
             pass
-        if st.button("重設用戶資料"):
+        if st.button("重新選擇模型"):
             del st.session_state['user_recorded']
             st.rerun()
         
-
-
-    DataManager.fetch_IP()
 
 # ********* Main *********
 COL_LEFT, COL_RIGHT = st.columns(2)
 
 with COL_LEFT:
-    st.session_state['gs'] = SheetManager.gs_conn('fetch')
+    try:
+        st.session_state['gs'] = SheetManager.gs_conn('fetch')
+    except APIError:
+        st.warning("無法連線至 Google Sheet 資料庫，請稍後再試")
+        st.stop()
+
     project_id = st.selectbox("選擇專案", options = st.session_state['gs']['project']['id'],
-                 format_func = lambda id: id + f" (Created: {pd.to_datetime(st.session_state['gs']['project'][st.session_state['gs']['project']['id'] == id]['created_time'], unit = 's').dt.strftime('%Y-%m-%d %H:%M:%S').tolist()[0]} )")
+                 format_func = lambda id: re.search("([^\d]*)[\d\.]+", id).groups()[0] + f" (Created: {pd.to_datetime(st.session_state['gs']['project'][st.session_state['gs']['project']['id'] == id]['created_time'], unit = 's').dt.strftime('%Y-%m-%d %H:%M:%S').tolist()[0]} )")
 
     ll, lr = st.columns((0.9, 0.1))
     with ll:
