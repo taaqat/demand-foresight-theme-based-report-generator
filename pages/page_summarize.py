@@ -234,7 +234,6 @@ def main():
 if 'user_recorded' in st.session_state:
     if 'user_recorded' in st.session_state:
         with st.sidebar:
-            st.info(f"歡迎使用資策會簡報產生器")
             if st.button("重新選擇模型"):
                 del st.session_state['user_recorded']
                 st.rerun()

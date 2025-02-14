@@ -51,10 +51,6 @@ with st.sidebar:
 
     # * Entry Point: 登入後讓使用者輸入基本資料
     if 'user_recorded' in st.session_state:
-        try:
-            st.info(f"歡迎使用資策會簡報產生器")
-        except:
-            pass
         if st.button("重新選擇模型"):
             del st.session_state['user_recorded']
             st.rerun()

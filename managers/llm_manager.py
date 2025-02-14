@@ -56,8 +56,6 @@ class LlmManager:
     def user_info():
         
         if st.secrets['permission']['user_token'] == True:
-            user = st.text_input("你的暱稱")
-            email = st.text_input("電子信箱")
             model_select = st.selectbox("請選擇欲使用的語言模型", ["claude-3-5-sonnet-20241022", "gpt-4o"])
             if model_select == "claude-3-5-sonnet-20241022":
                 tk = st.text_input("請輸入您的 Claude API Key")
@@ -65,15 +63,8 @@ class LlmManager:
                 tk = st.text_input("請輸入您的 OpenAI API Key")
             if st.button("確認"):
                 st.session_state['model_type'] = model_select
-
-                if not user:
-                    st.warning("暱稱請勿留空")
-                    st.stop()
-                if not email:
-                    st.warning("電子信箱請勿留空")
-                    st.stop()
-                st.session_state["user"] = user
-                st.session_state["email"] = email
+                st.session_state["user"] = 'iii-demand-foresight-theme-based'
+                st.session_state["email"] = 'linchunhuang@iii.org.tw'
                 st.session_state['LLM_KEY'] = tk
                 st.session_state['model'] = LlmManager.init_model()
                 with st.spinner("Verifying API key..."):
@@ -85,20 +76,12 @@ class LlmManager:
                     except Exception as e:
                         st.warning("Invalid Token")
         else:
-            user = st.text_input("你的暱稱")
-            email = st.text_input("電子信箱")
+            
             model_select = st.selectbox("請選擇欲使用的語言模型", ["claude-3-5-sonnet-20241022", "gpt-4o"])
             if st.button("確認"):
                 st.session_state['model_type'] = model_select
-
-                if user == None:
-                    st.warning("暱稱請勿留空")
-                    st.stop()
-                if email == None:
-                    st.warning("電子信箱請勿留空")
-                    st.stop()
-                st.session_state["user"] = user
-                st.session_state["email"] = email
+                st.session_state["user"] = 'iii-demand-foresight-theme-based'
+                st.session_state["email"] = 'linchunhuang@iii.org.tw'
                 if model_select == "claude-3-5-sonnet-20241022":
                     st.session_state['LLM_KEY'] = st.secrets['CLAUDE_KEY']
                 elif model_select == "gpt-4o":

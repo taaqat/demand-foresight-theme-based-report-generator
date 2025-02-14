@@ -79,8 +79,8 @@ class SheetManager:
         def extract_sheet_id(sheet_url):
             try:
                 return sheet_url.split("/d/")[1].split("/")[0]
-            except IndexError:
-                st.error("無效的試算表連結，請檢查 URL 格式。")
+            except Exception as e:
+                raise e
                 return None
             
         @staticmethod
@@ -95,7 +95,7 @@ class SheetManager:
 
                         return data
                     except Exception as e:
-                        return e
+                        raise e
                     
         @staticmethod
         def insert(client, sheet_url, row: list):
