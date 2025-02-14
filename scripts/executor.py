@@ -23,38 +23,41 @@ class Executor:
     def execute_1(theme, n_split):
         if "trends_in_parts" not in st.session_state.keys():
             st.session_state['trends_in_parts'] = {}
+
         if "trends_merged" not in st.session_state.keys():
             st.session_state['trends_merged'] = {}
 
-
-        # ** Generating trend reports from news data by parts
-        progress_bar = st.progress(0, "Generating news trend report")
-        if st.session_state["trends_in_parts"] == {}:
-            inputs = "【 事件編號 id: " + st.session_state["news_raw"]["id"].astype(str)+ "; 事件標題 title: " + st.session_state["news_raw"]["title"]+ "】" + "\n\n"  + st.session_state["news_raw"]["summary"]
-
-            # Determine chunk size
-            chunk_size = len(inputs) // n_split
-            remainder = len(inputs) % n_split
-
-            # Splitting into equal chunks
-            splited_input = []
-            start = 0
-            for i in range(n_split):
-                end = start + chunk_size + (1 if i < remainder else 0)  # Add 1 to the first 'remainder' chunks
-                splited_input.append(inputs[start:end])
-                start = end
-            
-
-            for i, df in enumerate(splited_input, start = 1):
-                progress_bar.progress(0.4 * ((i - 1) / len(splited_input)), f"Generating batch {i}")
-                Generator.news_gen(theme, "\n\n".join(df), i)
-                progress_bar.progress(0.4 * (i / len(splited_input)), f"Generating batch {i + 1}")
-        
-        # ** Aggregating trend reports
-        progress_bar.progress(0.4, f"Aggregating trend report...")
         if st.session_state['trends_merged'] == {}:
-            Generator.news_aggregate(theme)
-        progress_bar.progress(0.5, f"Searching key data from pdf reports")
+            # ** Generating trend reports from news data by parts
+            progress_bar = st.progress(0, "Generating news trend report")
+            if st.session_state["trends_in_parts"] == {}:
+                inputs = "【 事件編號 id: " + st.session_state["news_raw"]["id"].astype(str)+ "; 事件標題 title: " + st.session_state["news_raw"]["title"]+ "】" + "\n\n"  + st.session_state["news_raw"]["summary"]
+
+                # Determine chunk size
+                chunk_size = len(inputs) // n_split
+                remainder = len(inputs) % n_split
+
+                # Splitting into equal chunks
+                splited_input = []
+                start = 0
+                for i in range(n_split):
+                    end = start + chunk_size + (1 if i < remainder else 0)  # Add 1 to the first 'remainder' chunks
+                    splited_input.append(inputs[start:end])
+                    start = end
+                
+
+                for i, df in enumerate(splited_input, start = 1):
+                    progress_bar.progress(0.4 * ((i - 1) / len(splited_input)), f"Generating batch {i}")
+                    Generator.news_gen(theme, "\n\n".join(df), i)
+                    progress_bar.progress(0.4 * (i / len(splited_input)), f"Generating batch {i + 1}")
+            
+            # ** Aggregating trend reports
+            progress_bar.progress(0.4, f"Aggregating trend report...")
+            if st.session_state['trends_merged'] == {}:
+                Generator.news_aggregate(theme)
+            progress_bar.progress(0.5, f"Searching key data from pdf reports")
+        else:
+            pass
 
             
     @staticmethod

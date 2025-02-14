@@ -19,6 +19,7 @@ import streamlit_authenticator as stauth
 from streamlit_authenticator import Hasher
 import yaml
 import datetime
+from code_editor import code_editor
 
 
 # *********** Config ***********
@@ -212,6 +213,7 @@ def FUNC_call_executor_1():
     with cl:
         if st.button("Undo"):
             st.session_state["stage"] = 'manual_data_processing'
+            del st.session_state["trends_merged"]
             st.rerun()
     with cr:
         if st.button("Rerun"):
@@ -291,18 +293,44 @@ def UI():
                                                     st.session_state['email'],
                                                     type = 'failed', page = 'trend_report', error = error)
 
-            edited_text = st.text_area("請**確認**到目前為止生成的趨勢報告，並且依照喜好進行**編輯**。", 
-                         json.dumps(st.session_state["trends_merged"], indent = 4, ensure_ascii = False),
-                         height = 200)
-            # ** test whether user breaks the JSON formatting of the string
-            try:
-                st.session_state['trends_confirmed'] = json.loads(edited_text)
-                 # Wait for user confirmation
-                if st.button("Press to proceed", type = "primary"):
+
+
+            # edited_text = st.text_area("請**確認**到目前為止生成的趨勢報告，並且依照喜好進行**編輯**。", 
+            #              json.dumps(st.session_state["trends_merged"], indent = 4, ensure_ascii = False),
+            #              height = 200)
+            bs = [{
+                "name": "→點擊儲存變更",
+                "feather": "Save",
+                "alwaysOn": True,
+                "commands": ["submit"],
+                "style": {"top": "0.46rem", "right": "0.4rem"},
+                "hasText": True
+                }] 
+            
+            edited_dict = code_editor(json.dumps(st.session_state["trends_merged"], indent = 4, ensure_ascii = False),
+                        buttons = bs,
+                        height=[10, 20],
+                        options = {"wrap": True})
+            
+            if st.button("Proceed (偶爾會失靈，要按兩次)", type = "primary"):
+                try:
+                    # ** test whether user breaks the JSON formatting of the string
+                    st.session_state['trends_confirmed'] = json.loads(edited_dict['text'])
                     st.session_state['stage'] = "proceeding"
                     st.rerun()
-            except json.decoder.JSONDecodeError:
-                st.warning("請不要破壞 JSON 結構！")
+                except: 
+                    st.warning("JSON 結構無效。請**點擊儲存變更**，並確保內容為有效 JSON 格式")
+                    st.stop()
+            
+            
+            # try:
+            #     st.session_state['trends_confirmed'] = json.loads(edited_text)
+            #      # Wait for user confirmation
+            #     if st.button("Press to proceed", type = "primary"):
+            #         st.session_state['stage'] = "proceeding"
+            #         st.rerun()
+            # except json.decoder.JSONDecodeError:
+            #     st.warning("請不要破壞 JSON 結構！")
 
            
 
