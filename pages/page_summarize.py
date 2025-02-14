@@ -160,6 +160,11 @@ def main():
                 sheet_url = st.text_input("請輸入可編輯之 Google Sheet 連結（Optional）")
                 
                 if st.button("確認送出，開始摘要", type = "primary"):
+                    try:
+                        SheetManager.SummaryGSDB.fetch(SheetManager.SummaryGSDB.authenticate_google_sheets(json.loads(st.secrets['gsheet-credits']['credits'])), sheet_url)
+                    except Exception as e:
+                        st.error(f"Error happened while connecting to the google sheet: **{e}**")
+                        st.stop()
                     st.session_state['summarized_data'] = pd.DataFrame()
                     st.session_state['sheet_url'] = sheet_url
                     if not st.session_state["news_to_be_summarized"].empty:
