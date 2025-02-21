@@ -16,7 +16,10 @@ This file contains class `Generator` that is composed of four functions (four st
             Merge `trends_merged` and `pdf_files` and generate the final trend report.
             
 ##### `executor.py`
-串接 `generator.py` 裡面的函數，於 UI 只需要呼叫 `Executor.execute()` 並傳入指定引述即可
+串接 `generator.py` 裡面的函數，於 UI 只需要呼叫 `Executor.execute()` 並傳入指定引數即可
+
+##### `summarizor.py`
+為新聞摘要頁面的支援函數。在 `page_main.py` 中會呼叫該檔案中的 `Summarizor.summarize()` 函數，將新聞逐一摘要。
 
 #### `managers`
 `data_manager.py`
